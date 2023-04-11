@@ -6,13 +6,12 @@ import requests
 
 
 class Client:
-    def __init__(self, username, password, user_agent, pool_size=1):
+    def __init__(self, username, password, user_agent):
         """Initializes the client with:
         ------------------------------
         username = username for SmartDok
         password = password for SmartDok
         user_agent = user agent for requests
-        pool_size = number of processes to run in parallel
         """
 
         self.session = requests.Session()
@@ -21,7 +20,6 @@ class Client:
         self.base_url = 'https://web.smartdok.no/'
         self.web_api_url = 'https://smartapi.smartdok.no/'
         self.api_url = 'https://api.smartdok.no/'
-        self.pool_size = pool_size
 
         auth_fields = self.get_auth_fields()
         login_page = self.session.post(self.base_url, data=auth_fields)
@@ -37,17 +35,18 @@ class Client:
             'UserId': self.userid
         }
 
-    def get_all_deviation_data(self, deviation_type, amount_of_deviations=10, days_back=0):
+    def get_all_deviation_data(self, deviation_type, amount_of_deviations, days_back, pool_size=1):
         """runs get_deviation with all deviations as input with multiprocessing
         ------------------------------
         deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation
         amount_of_deviations = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
         days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
                     1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
+        pool_size = number of processes to run in parallel | (default = 1) | 1 = no multiprocessing
         """
-        deviations = self.get_deviations(deviation_type)
+        deviations = self.get_deviations(deviation_type, amount_of_deviations, days_back)
 
-        with Pool(self.pool_size) as pool:
+        with Pool(pool_size) as pool:
             result = pool.map(self.get_deviation, deviations)
         pool.join()
 
@@ -101,11 +100,11 @@ class Client:
 
         return response.content
 
-    def get_deviations(self, deviation_type, amount_of_deviations=10, days_back=0):
+    def get_deviations(self, deviation_type, amount_of_deviations=0, days_back=0):
         """Gets all deviations from SmartDok including only id and type
         ------------------------------
-        deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation
-        amount_of_deviations = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
+        deviation_type = type of deviation to get | rue = RUE | qd = quality-deviation
+        amount_of_deviations = number of deviations to fetch | (default = 0) | 0 = all deviations | 10 = 10 deviations
         days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
                     1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
         """
