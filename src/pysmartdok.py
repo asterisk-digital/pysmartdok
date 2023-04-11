@@ -6,15 +6,15 @@ import requests
 
 
 class Client:
-    def __init__(self, username, password, user_agent, pool_size=1, days_back=0):
-        """initializes the client with:
+    def __init__(self, username, password, user_agent, pool_size=1):
+        """Initializes the client with:
         ------------------------------
         username = username for SmartDok
         password = password for SmartDok
         user_agent = user agent for requests
         pool_size = number of processes to run in parallel
-        days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
-            1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc. """
+        """
+
         self.session = requests.Session()
         self.username = username
         self.password = password
@@ -22,7 +22,6 @@ class Client:
         self.web_api_url = 'https://smartapi.smartdok.no/'
         self.api_url = 'https://api.smartdok.no/'
         self.pool_size = pool_size
-        self.days = days_back
 
         auth_fields = self.get_auth_fields()
         login_page = self.session.post(self.base_url, data=auth_fields)
@@ -98,19 +97,22 @@ class Client:
 
         return response.content
 
-    def get_deviations(self, deviation_type, take_arg=10):
-        """gets all deviations from SmartDok including only id and type
+    def get_deviations(self, deviation_type, take_arg=10, days_back=0):
+        """Gets all deviations from SmartDok including only id and type
         ------------------------------
         deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation
         take_arg = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
+        days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
+                    1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
         """
+
         to_date = datetime.datetime.now().replace(microsecond=0)
         # +01:00 is the timezone in SmartDok
         timezone = '+01:00'
-        if self.days == 0:
+        if days_back == 0:
             from_date = ''
         else:
-            from_date = f'{to_date - datetime.timedelta(days=self.days)}{timezone}'
+            from_date = f'{to_date - datetime.timedelta(days=days_back)}{timezone}'
 
         options = {
             # which status we ignore when fetching all deviations (line 55 to see other options)
@@ -138,11 +140,13 @@ class Client:
 
     def get_deviation(self, base_deviation: dict):
         """get deviation data from SmartDok with the use of base_deviation"""
+
         params = {
             'id': base_deviation['id'],
             'getAccessRights': 'true',
             'newSeverityValuesCompliant': 'true',
         }
+
         response = self.session.get(f"{self.web_api_url}/{base_deviation['type']}/report",
                                     params=params, headers=self.headers)
 
@@ -195,12 +199,14 @@ class Client:
         return deviation_data
 
     def apply_deviation_status(self, deviation_id, deviation_type, status=2):
-        """applies deviation status to given deviation by id
+        """Applies deviation status to given deviation by id
         ------------------------------
         deviation_id = id of the deviation to apply status to
         deviation_type = type of deviation to apply status to | rue = RUE, qd = quality-deviation
         status = status to apply to deviation | (default = 2) | 0 = untreated 1 = open, 2 = closed, 3 = rejected
-        returns a requests.Response object"""
+                returns a requests.Response object
+        """
+
         params = {
             'id': deviation_id,
             'status': status,
@@ -229,6 +235,7 @@ class Client:
                             category_id = name['Name']
                             return category_id
 
+    # all functions below are used to log in to SmartDok and get the required data to use the browser version of the API
     def get_auth_fields(self):
         """get get_auth_fields is just to scrape info and return as login data"""
         forgery_str = 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken'
