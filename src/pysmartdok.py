@@ -37,10 +37,14 @@ class Client:
             'UserId': self.userid
         }
 
-    def get_all_deviation_data(self, deviation_type):
+    def get_all_deviation_data(self, deviation_type, amount_of_deviations=10, days_back=0):
         """runs get_deviation with all deviations as input with multiprocessing
         ------------------------------
-        deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation"""
+        deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation
+        amount_of_deviations = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
+        days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
+                    1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
+        """
         deviations = self.get_deviations(deviation_type)
 
         with Pool(self.pool_size) as pool:
@@ -97,11 +101,11 @@ class Client:
 
         return response.content
 
-    def get_deviations(self, deviation_type, take_arg=10, days_back=0):
+    def get_deviations(self, deviation_type, amount_of_deviations=10, days_back=0):
         """Gets all deviations from SmartDok including only id and type
         ------------------------------
         deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation
-        take_arg = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
+        amount_of_deviations = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
         days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
                     1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
         """
@@ -115,11 +119,11 @@ class Client:
             from_date = f'{to_date - datetime.timedelta(days=days_back)}{timezone}'
 
         options = {
-            # which status we ignore when fetching all deviations (line 55 to see other options)
+            # which status we ignore when fetching all deviations (line 210 to see other options)
             'HideStatus[]': '2',
             'FromDate': from_date,
             'ToDate': f'{to_date}{timezone}',
-            'Take': take_arg,
+            'Take': amount_of_deviations,
         }
 
         deviations = []
