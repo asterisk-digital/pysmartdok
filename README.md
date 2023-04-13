@@ -12,9 +12,9 @@ import pysmartdok
 # Credentials for SmartDok
 # username and password is the same as for the web interface for SmartDok
 credentials = {
-  'username': 'my_user',
-  'password': 'my_password',
-  'user_agent': 'my_user_agent'
+  'username': 'SmartDok_username',
+  'password': 'SmartDok_password',
+  'user_agent': 'user_agent'
 }
 
 # Creating a client
