@@ -38,7 +38,7 @@ class Client:
     def get_all_deviation_data(self, deviation_type, amount_of_deviations, days_back, pool_size=1):
         """runs get_deviation with all deviations as input with multiprocessing
         ------------------------------
-        deviation_type = type of deviation to get | rue = RUE, qd = quality-deviation
+        deviation_type = type of deviation to get | rue = RUH ('rapport om uønsket hendelse'), qd = quality-deviation
         amount_of_deviations = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
         days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
                     1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
@@ -103,7 +103,7 @@ class Client:
     def get_deviations(self, deviation_type, amount_of_deviations=0, days_back=0):
         """Gets all deviations from SmartDok including only id and type
         ------------------------------
-        deviation_type = type of deviation to get | rue = RUE | qd = quality-deviation
+        deviation_type = type of deviation to get | rue = RUH | qd = quality-deviation
         amount_of_deviations = number of deviations to fetch | (default = 0) | 0 = all deviations | 10 = 10 deviations
         days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
                     1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
@@ -241,28 +241,28 @@ class Client:
     # all functions below are used to log in to SmartDok and get the required data to use the browser version of the API
     def get_auth_fields(self):
         """get get_auth_fields is just to scrape info and return as login data"""
-        forgery_str = 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken'
-        viewstate_str = '__VIEWSTATE'
-        eventvalidation_str = '__EVENTVALIDATION'
+        forgery_key = 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken'
+        viewstate_key = '__VIEWSTATE'
+        eventvalidation_key = '__EVENTVALIDATION'
 
         soup = self.session.get(self.base_url)
         page = bs(soup.text, 'html.parser')
 
-        forgery = page.find('input', attrs={'name': forgery_str})
+        forgery = page.find('input', attrs={'name': forgery_key})
         forgery = forgery['value']
 
-        viewstate = page.find('input', attrs={'name': viewstate_str})
+        viewstate = page.find('input', attrs={'name': viewstate_key})
         viewstate = viewstate['value']
 
-        eventvalidation = page.find('input', attrs={'name': eventvalidation_str})
+        eventvalidation = page.find('input', attrs={'name': eventvalidation_key})
         eventvalidation = eventvalidation['value']
 
         auth_fields = {
-            viewstate_str: viewstate,
-            eventvalidation_str: eventvalidation,
+            viewstate_key: viewstate,
+            eventvalidation_key: eventvalidation,
             'SmartDokLoginView$LoginSmartDok$UserName': self.username,
             'SmartDokLoginView$LoginSmartDok$Password': self.password,
-            forgery_str: forgery,
+            forgery_key: forgery,
             'SmartDokLoginView$LoginSmartDok$LoginButton': 'Logg inn'
         }
 

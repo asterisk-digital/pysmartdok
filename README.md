@@ -21,8 +21,8 @@ client = pysmartdok.Client(username=credentials['username'], password=credential
 
 # Getting data
 result = client.get_all_deviation_data(deviation_type='qd', amount_of_deviations=0, days_back=0, pool_size=1)
-"""only deviation_type is required, the rest are optional
-amount_of_deviations: 0 = all, 1 = last, 2 = last two, etc. Default: 0
+"""only deviation_type is required, the rest are optional: rue = RUH ('rapport om uønsket hendelse'), qd = quality-deviation
+amount_of_deviations: 0 = all, 1 = last one, 2 = last two, etc. Default: 0
 days_back: 0 = all, 1 = last 24 hours, 2 = last 48 hours, etc. Default: 0
 pool_size: number of threads to use for fetching data. Default: 1 (no threading)
 """
