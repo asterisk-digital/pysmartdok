@@ -121,8 +121,6 @@ class Client:
             from_date = f'{to_date - datetime.timedelta(days=days_back)}{timezone}'
 
         options = {
-            # which status we ignore when fetching all deviations (line 210 to see other options)
-            'HideStatus[]': '2',
             'FromDate': from_date,
             'ToDate': f'{to_date}{timezone}',
             'Take': amount_of_deviations,
