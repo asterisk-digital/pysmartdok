@@ -14,11 +14,10 @@ import pysmartdok
 credentials = {
   'username': 'SmartDok_username',
   'password': 'SmartDok_password',
-  'user_agent': 'user_agent'
 }
 
 # Creating a client
-client = pysmartdok.Client(username=credentials['username'], password=credentials['password'], user_agent=credentials['user_agent'])
+client = pysmartdok.Client(username=credentials['username'], password=credentials['password'])
 
 # Getting data
 result = client.get_all_deviation_data(deviation_type='qd', amount_of_deviations=0, days_back=0, pool_size=1)

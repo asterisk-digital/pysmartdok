@@ -6,17 +6,20 @@ import requests
 
 
 class Client:
-    def __init__(self, username, password, user_agent):
+    def __init__(self, username, password):
         """Initializes the client with:
         ------------------------------
         username = username for SmartDok
         password = password for SmartDok
-        user_agent = user agent for requests
         """
-
         self.session = requests.Session()
-        self.username = username
-        self.password = password
+
+        self.credentials = {
+            'username': username,
+            'password': password
+        }
+        user_agent = 'intrix-pysmartdok(post@intrix.no)'
+
         self.base_url = 'https://web.smartdok.no/'
         self.web_api_url = 'https://smartapi.smartdok.no/'
         self.api_url = 'https://api.smartdok.no/'
@@ -265,8 +268,8 @@ class Client:
         auth_fields = {
             viewstate_key: viewstate,
             eventvalidation_key: eventvalidation,
-            'SmartDokLoginView$LoginSmartDok$UserName': self.username,
-            'SmartDokLoginView$LoginSmartDok$Password': self.password,
+            'SmartDokLoginView$LoginSmartDok$UserName': self.credentials['username'],
+            'SmartDokLoginView$LoginSmartDok$Password': self.credentials['password'],
             forgery_key: forgery,
             'SmartDokLoginView$LoginSmartDok$LoginButton': 'Logg inn'
         }
