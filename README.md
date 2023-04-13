@@ -9,7 +9,8 @@ The library can be used as follows:
 ```
 import pysmartdok
 
-
+# Credentials for SmartDok
+# username and password is the same as for the web interface for SmartDok
 credentials = {
   'username': 'my_user',
   'password': 'my_password',

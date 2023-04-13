@@ -169,6 +169,7 @@ class Client:
 
             img_list.append(img_dict)
 
+        # base deviation data that is the same for all deviation types
         deviation_data = {
             'Title': deviation['Title'],
             'Description': deviation['Description'],
@@ -176,12 +177,16 @@ class Client:
             'ProjectNumber': deviation['ProjectNumber'],
             'Pictures': img_list,
         }
+
+        # get deviation data based on deviation type
+        # rue = RUH
         if base_deviation['type'] == 'rue':
             deviation_data['EventId'] = deviation['EventId']
             deviation_data['Category'] = deviation['Values'][0]['Values'][0]['Name']
             deviation_data['SubCategory'] = deviation['Values'][1]['Values'][0]['Name']
             deviation_data['OwnerName'] = deviation['OwnerName']
             deviation_data['type'] = 'rue'
+        # qd = quality-deviation
         elif base_deviation['type'] == 'qd':
             deviation_data['DeviationId'] = deviation['DeviationId']
             deviation_data['CaseWorkerName'] = deviation['CaseWorkerName']
