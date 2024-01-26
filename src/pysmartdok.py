@@ -36,26 +36,34 @@ for required_envvar in required_envvars:
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.debug(f'envvars: {envvars}')
 ## FIXME: REMOVE ALL ABOVE CODE UP TO NEXT FIXME
+# TODO: REMEMBER TO REMOVE AFTER DEVELOPMENT
 
 class Client:
-    def __init__(self, username, password, integration_token):
+    def __init__(self, username: str = None, password: str = None, integration_token: str = None, user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+        
+        if None in (username, password, integration_token):
+            raise ValueError("username, password, and integration token must be provided.")
+
         self.session = requests.Session()
         # TODO: ADD CONMMENT ABOUT WHY WE USE THIS USER AGENT
         headers = {
-            'user-agent': 'post@intrix.no Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; Touch)'
+            'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 [{user_agent}]',
+            'X-CSRF': '',
         }
         self.session.headers.update(headers)
         logging.debug(f'current headers for session: \n {self.session.headers}')
 
         self.base_url = 'https://web.smartdok.no'
-        self.web_api_url = f'{self.base_url}/smartdokapi'
-        self.api_url = 'https://api.smartdok.no'
+        self.web_api_url = f'{self.base_url}/smartapi'
 
-        login = self.webSmartdokLogin(username, password)
+        login = self.inisiat_smartdok_web_api(username, password)
 
-    
-    def webSmartdokLogin(self, username: str, password: str):
+    def inisiat_smartdok_web_api(self, username: str, password: str):
+        if self.smartdok_web_login(username, password) == 200: logging.debug('smartdok_web_login - success')
+        self.inisiat_api()
+
+    def smartdok_web_login(self, username: str, password: str) -> requests.status_codes:
         # TODO: ADD CONMMENT ABOUT WHY WE HAVE STRUCTURED THE FORM DATA LIKE THIS
         raw_form_data = {
             'eventtarget':          {'key': '__EVENTTARGET', 'value': ''},
@@ -68,7 +76,7 @@ class Client:
             'password':             {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
             'loginbutton':          {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
         }
-        logging.debug(f'webSmartdokLogin - form_data: {raw_form_data}')
+        logging.debug(f'smartdok_web_login - form_data: {raw_form_data}')
 
         login_page = self.session.get(self.base_url)
         soup = bs(login_page.text, 'html.parser')
@@ -81,7 +89,7 @@ class Client:
 
         form_data = self.dict_with_dict_to_dict(raw_form_data)
 
-        response = self.session.post(self.base_url, data=form_data)
+        response = self.session.post(f'{self.base_url}/index.aspx', data=form_data)
 
         if response.status_code != 200:
             raise Exception(f'Login failed {response.status_code}')
@@ -90,9 +98,34 @@ class Client:
 
         if response_soup.find('span', attrs={'id': 'LabelCompanyName'}).text == None:
             raise Exception('Login failed - no company name found')
+
+        logging.debug(f'smartdok_web_login - response_soup: {response_soup}')
+
+        return response.status_code
+    
+
         
-        auth = self.scrap_api_auth(response_soup)
-        print(auth)
+    def inisiat_api(self):
+        payload = {
+            'Submitter': '',
+            'DepartmentId': '',
+            'FromDate': '',
+            'ToDate': '',
+            'IncludeDeactivated': 'false',
+            'HideStatus[]': '3',
+            'take': '20',
+            'skip': '0',
+            'page': '1',
+            'pageSize': '20'
+        }
+
+
+        test = self.session.get(f'{self.web_api_url}/qd/overview' , params=payload)
+
+        # make text to dict
+        test = json.loads(test.text)
+
+        print(test)
 
     @staticmethod
     def soup_find_input_value(soup: bs, input_name: str) -> str:
@@ -110,9 +143,6 @@ class Client:
 
         if input == None:
             raise Exception(f'no input found with name {input_name}')
-        
-        if 'value' not in input:
-            raise Exception(f'no value found in input with name {input_name}')
 
         input_value = input['value']
         
@@ -137,38 +167,9 @@ class Client:
             return_key = input_dict[key]['key']
             output_dict[return_key]= input_dict[key]['value']
             
-        logging.debug(f'dict_with_dict_to_dict - from {input_dict} to {output_dict}')
+        logging.debug(f'dict_with_dict_to_dict - from {input_dict} \n to {output_dict}')
             
         return output_dict
-
-    def scrap_api_auth(self, response_soup: bs) -> dict:
-        response_soup = response_soup
-
-        script_tags = response_soup.find_all('script')
-
-        for tag in script_tags:
-            if 'var UserData = JSON.parse' in tag.text:
-                user_data = tag.text
-                # remove everything before the user_data and after
-                user_data = user_data.split("var UserData = JSON.parse('")[1]
-                user_data = user_data.split("');")[0]
-                # remove all unwanted characters
-                char_remove = ['\n', '\r', '\t', '\\']
-                for char in char_remove:
-                    user_data = user_data.replace(char, '')
-                
-                # convert to dict
-                user_data_dict = json.loads(user_data)
-                print(type(user_data_dict))
-
-        if user_data_dict == None:
-            raise Exception('no user data found')
-        
-        if type(user_data_dict) != dict:
-            raise Exception('user data is not a dict')
-        
-        return user_data_dict
-        
 
 
 if __name__ == "__main__":
