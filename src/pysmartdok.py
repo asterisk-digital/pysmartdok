@@ -2,9 +2,10 @@ import logging
 import json
 
 import requests
-from bs4 import BeautifulSoup as bs
+from bs4 import BeautifulSoup
 
 import utils
+
 
 class Client:
     def __init__(self, username: str = None, password: str = None, user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
@@ -34,7 +35,8 @@ class Client:
         self.base_url = 'https://web.smartdok.no'
         self.web_api_url = f'{self.base_url}/smartapi'
 
-        if self.smartdok_login(username, password) == 200: logging.debug('smartdok_web_login - success')
+        request = self.smartdok_login(username, password)
+        utils.is_status_code_200(request)
 
     def smartdok_login(self, username: str = None, password: str = None) -> int:
         """
@@ -63,7 +65,7 @@ class Client:
         }
 
         login_page = self.session.get(self.base_url)
-        soup = bs(login_page.text, 'html.parser')
+        soup = BeautifulSoup(login_page.text, 'html.parser')
 
         for meta_key, inner_dict in raw_form_data.items():
             # we skip username and password because we already have them in the raw_form_data dict.
@@ -77,45 +79,44 @@ class Client:
        
         utils.verify_login(login)
 
-        return login.status_code
+        return login
     
     def get_single_record(self, record_id: str = None, record_type: str = None) -> dict:
-            """
-            retrieves a single record from the SmartDok API.
+        """
+        retrieves a single record from the SmartDok API.
 
-            args:
-                record_id (str): the ID of the record to retrieve.
-                record_type (str): the type of the record to retrieve.
+        args:
+            record_id (str): the ID of the record to retrieve.
+            record_type (str): the type of the record to retrieve.
 
-            returns:
-                dict: the processed data of the retrieved record.
+        returns:
+            dict: the processed data of the retrieved record.
 
-            raises:
-                Exception: if the request to the API fails.
-                ValueError: if the record_type is unknown.
-            """
-            utils.verify_record_type(record_type)
-            
-            params = {
-                'id': record_id,
-                'getAccessRights': 'true'
-            }
+        raises:
+            Exception: if the request to the API fails.
+            ValueError: if the record_type is unknown.
+        """
+        utils.verify_record_type(record_type)
+        
+        params = {
+            'id': record_id,
+            'getAccessRights': 'true'
+        }
 
-            request = self.session.get(f'{self.web_api_url}/{record_type}/report', params=params)
+        request = self.session.get(f'{self.web_api_url}/{record_type}/report', params=params)
 
-            if request.status_code != 200:
-                raise Exception(f'request status code {request.status_code} != 200')
+        utils.is_status_code_200(request)
 
-            respone_data = json.loads(request.text)
+        respone_data = json.loads(request.text)
 
-            if record_type == 'qd':
-                processed_data = utils.convert_smartdok_qd_record_to_dict(respone_data)
-            elif record_type == 'rue':
-                processed_data = utils.convert_smartdok_rue_record_to_dict(respone_data)
-            else:
-                raise ValueError(f'Unknown record_type: {record_type}')
+        if record_type == 'qd':
+            processed_data = utils.convert_smartdok_qd_record_to_dict(respone_data)
+        elif record_type == 'rue':
+            processed_data = utils.convert_smartdok_rue_record_to_dict(respone_data)
+        else:
+            raise ValueError(f'Unknown record_type: {record_type}')
 
-            return processed_data
+        return processed_data
 
     def get_all_records(self, record_type: str = None, days_back: int = 0) -> list:
         """
@@ -153,7 +154,7 @@ class Client:
         request_all_records_data = request_all_records_data_raw['data']
 
         for record in request_all_records_data:
-            record_raw = Client.get_single_record(record['Id'], record_type)
+            record_raw = self.get_single_record(record['Id'], record_type)
             
             records.append(record_raw)
 
