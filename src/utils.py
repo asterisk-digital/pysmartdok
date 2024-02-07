@@ -155,7 +155,7 @@ def convert_qd_category_dict_to_text(raw_record: dict = None, category_dict: dic
                 
     return ''
     
-def convert_date_to_smartdok_date_format(days_back: int = None) -> tuple:
+def convert_date_to_smartdok_date_format(days_back: int = None) -> (str, str):
     """
     converts the current date and a specified number of days back to the SmartDok date format.
 
