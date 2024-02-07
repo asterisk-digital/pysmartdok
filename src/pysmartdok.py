@@ -1,4 +1,5 @@
 import logging
+from multiprocessing import Pool, cpu_count
 
 import requests
 from bs4 import BeautifulSoup
@@ -120,19 +121,32 @@ class Client:
 
         return processed_data
 
+    def get_single_record_wrapper(self, args):
+        """
+        wrapper method for getting a single record.
+
+        args:
+            args: the arguments to be passed to the `get_single_record` method.
+
+        returns:
+            the result of the `get_single_record` method.
+        """
+        return self.get_single_record(*args)
+
     def get_all_records(self, record_type: str = None, days_back: int = 0) -> list:
         """
         retrieves all records of a specified type within a given time range.
 
         args:
             record_type (str): the type of records to retrieve.
-            days_back (int): the number of days back from today to retrieve records.
+            days_back (int): the number of days back from the current date to retrieve records.
 
         returns:
             list: a list of records.
 
         raises:
-            ValueError: if the record_type is not valid.
+            ValueError: if the record_type is invalid.
+
         """
         utils.verify_record_type(record_type)
         
@@ -156,9 +170,18 @@ class Client:
         response_all_records_data_raw = response_all_records.json()
         response_all_records_data = response_all_records_data_raw['data']
 
-        for record in response_all_records_data:
-            record_raw = self.get_single_record(record['Id'], record_type)
-            
-            records.append(record_raw)
+        record_ids = [record['Id'] for record in response_all_records_data]
 
+        # set the number of processes you want to use (adjust as needed)
+        num_processes = cpu_count()
+
+        # create a pool of processes
+        with Pool(processes=num_processes) as p:
+            # use pool.map to parallelize the execution of get_single_record
+            record_args = [(record_id, record_type) for record_id in record_ids]
+            # this line is using the map method of the pool to apply the get_single_record_wrapper function to every item in record_args. The map method blocks until all the function calls are completed. The results are returned as a list and assigned to records.
+            records = p.map(self.get_single_record_wrapper, record_args)
+        p.close()
+        p.join()
+        
         return records
