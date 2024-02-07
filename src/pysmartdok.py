@@ -1,5 +1,4 @@
 import logging
-import json
 
 import requests
 from bs4 import BeautifulSoup
@@ -35,10 +34,12 @@ class Client:
         self.base_url = 'https://web.smartdok.no'
         self.web_api_url = f'{self.base_url}/smartapi'
 
-        request = self.smartdok_login(username, password)
-        utils.is_status_code_200(request)
+        response = self.smartdok_login(username, password)
+        if response.status_code != 200:
+            raise Exception(f'request status code {response.status_code} != 200')
+        
 
-    def smartdok_login(self, username: str = None, password: str = None) -> int:
+    def smartdok_login(self, username: str = None, password: str = None) -> requests.Response:
         """
         logs into the SmartDok website using the provided username and password.
 
@@ -103,11 +104,12 @@ class Client:
             'getAccessRights': 'true'
         }
 
-        request = self.session.get(f'{self.web_api_url}/{record_type}/report', params=params)
+        response = self.session.get(f'{self.web_api_url}/{record_type}/report', params=params)
 
-        utils.is_status_code_200(request)
+        if response.status_code != 200:
+            raise Exception(f'request status code {response.status_code} != 200')
 
-        respone_data = json.loads(request.text)
+        respone_data = response.json()
 
         if record_type == 'qd':
             processed_data = utils.convert_smartdok_qd_record_to_dict(respone_data)
@@ -148,12 +150,13 @@ class Client:
             'take': '',
         }
 
-        request_all_records = self.session.get(f'{self.web_api_url}/{record_type}/overview', params=params)
+        response_all_records = self.session.get(f'{self.web_api_url}/{record_type}/overview', params=params)
         
-        request_all_records_data_raw = json.loads(request_all_records.text)
-        request_all_records_data = request_all_records_data_raw['data']
+        # remove .text = the JSON object must be str, bytes or bytearray, not Response
+        response_all_records_data_raw = response_all_records.json()
+        response_all_records_data = response_all_records_data_raw['data']
 
-        for record in request_all_records_data:
+        for record in response_all_records_data:
             record_raw = self.get_single_record(record['Id'], record_type)
             
             records.append(record_raw)

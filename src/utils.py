@@ -102,7 +102,10 @@ def convert_smartdok_qd_record_to_dict(raw_record: dict = None) -> dict:
             'imagetype': picture['ImageType'],
         }
         response = requests.get(picture['Url'])
-        is_status_code_200(response)
+        
+        if response.status_code != 200:
+            raise Exception(f'request status code {response.status_code} != 200')
+        
         picture_dict['image_data'] = response.content
         record['pictures'].append(picture_dict)
 
@@ -152,7 +155,7 @@ def convert_qd_category_dict_to_text(raw_record: dict = None, category_dict: dic
                 
     return ''
     
-def convert_date_to_smartdok_date_format(days_back: int = None) -> str:
+def convert_date_to_smartdok_date_format(days_back: int = None) -> tuple:
     """
     converts the current date and a specified number of days back to the SmartDok date format.
 
@@ -163,10 +166,11 @@ def convert_date_to_smartdok_date_format(days_back: int = None) -> str:
         tuple: a tuple containing two strings - today's date in the SmartDok date format and the date N days back in the SmartDok date format.
     """
     # create a custom timezone with a specific offset (+01:00 in this case)
+    # this is necessary because the SmartDok API requires the timezone offset to be included in the date
     custom_timezone = timezone(timedelta(hours=1))
 
     # set the specific hour, minute, and second
-    desired_time = datetime.time(13, 6, 9)
+    desired_time = datetime.time()
 
     # get the current date in the custom timezone
     current_date = datetime.datetime.now(custom_timezone).date()
@@ -227,7 +231,7 @@ def verify_record_type(record_type: str = None) -> bool:
     else:
         return True
 
-def verify_login(website: requests.Response = None) -> bool:
+def verify_login(response: requests.Response = None) -> bool:
     """
     verify if the login was successful by checking the status code and the presence of a specific HTML element.
 
@@ -240,30 +244,13 @@ def verify_login(website: requests.Response = None) -> bool:
     raises:
         Exception: if the login was not successful (no span with id 'LabelCompanyName' found).
     """
-    is_status_code_200(website)
+    if response.status_code != 200:
+        raise Exception(f'request status code {response.status_code} != 200')
     
-    soup = BeautifulSoup(website.text, 'html.parser')
+    soup = BeautifulSoup(response.text, 'html.parser')
 
     # span with id LabelCompanyName is only present when logged in successfully
     if soup.find('span', attrs={'id': 'LabelCompanyName'}) == None:
         raise Exception('no span with id LabelCompanyName found')
-    else:
-        return True
-    
-def is_status_code_200(response: requests.Response = None) -> bool:
-    """
-    checks if the response status code is 200.
-
-    args:
-        response (requests.Response): the response object.
-
-    returns:
-        bool: true if the status code is 200, False otherwise.
-
-    raises:
-        Exception: if the status code is not 200.
-    """
-    if response.status_code != 200:
-        raise Exception(f'request status code {response.status_code} != 200')
     else:
         return True
