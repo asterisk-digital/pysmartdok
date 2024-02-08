@@ -1,328 +1,187 @@
-from multiprocessing import Pool
-import datetime
+import logging
+from multiprocessing import Pool, cpu_count
 
-from bs4 import BeautifulSoup as bs
 import requests
+from bs4 import BeautifulSoup
+
+import utils
 
 
 class Client:
-    def __init__(self, username, password):
-        """Initializes the client with:
-        ------------------------------
-        username = username for SmartDok
-        password = password for SmartDok
+    def __init__(self, username: str = None, password: str = None, user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
         """
+        initializes an instance of the `pysmartdok` class.
+
+        args:
+            username (str, required): the username for SmartDok login. defaults to None.
+            password (str, required): the password for SmartDok login. defaults to None.
+            user_agent (str, optional): the user agent to be used for the HTTP requests. defaults to 'intrix-pysmartdok(post@intrix.no)'.
+        """
+        logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] - %(asctime)s - %(message)s')
+        utils.verify_init_params(username, password, user_agent)
+        
+        # we use this user agent because SmartDok blocks the default Python user agent.
+        # it's necessary to employ a user agent that SmartDok does not block.
+        # the 'X-CSRF' header is required by SmartDok to prevent CSRF attacks.
+        # we initialize it to be empty as its specific value is unknown; it only needs to be present in the headers.
+        headers = {
+            'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 [{user_agent}]',
+            'X-CSRF': '',
+        }
+
         self.session = requests.Session()
+        self.session.headers.update(headers)
 
-        self.credentials = {
-            'username': username,
-            'password': password
-        }
-        user_agent = 'intrix-pysmartdok(post@intrix.no)'
+        self.base_url = 'https://web.smartdok.no'
+        self.web_api_url = f'{self.base_url}/smartapi'
 
-        self.base_url = 'https://web.smartdok.no/'
-        self.web_api_url = 'https://smartapi.smartdok.no/'
-        self.api_url = 'https://api.smartdok.no/'
+        response = self.smartdok_login(username, password)
+        if response.status_code != 200:
+            raise Exception(f'request status code {response.status_code} != 200')
+        
 
-        auth_fields = self.get_auth_fields()
-        login_page = self.session.post(self.base_url, data=auth_fields)
-
-        auth_string = self.get_auth_string(login_page)
-        self.token = self.get_token(auth_string)
-        self.userid = self.get_userid(auth_string)
-
-        self.headers = {
-            'Content-Type': 'application/json; charset=utf-8',
-            'User-Agent': user_agent,
-            'Token': self.token,
-            'UserId': self.userid
-        }
-
-    def get_all_deviation_data(self, deviation_type, amount_of_deviations, days_back, pool_size=1):
-        """runs get_deviation with all deviations as input with multiprocessing
-        ------------------------------
-        deviation_type = type of deviation to get | rue = RUH ('rapport om uønsket hendelse'), qd = quality-deviation
-        amount_of_deviations = number of deviations to fetch at once | (default = 10) | 10 = 10 deviations
-        days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
-                    1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
-        pool_size = number of processes to run in parallel | (default = 1) | 1 = no multiprocessing
+    def smartdok_login(self, username: str = None, password: str = None) -> requests.Response:
         """
-        deviations = self.get_deviations(deviation_type, amount_of_deviations, days_back)
+        logs into the SmartDok website using the provided username and password.
 
-        with Pool(pool_size) as pool:
-            result = pool.map(self.get_deviation, deviations)
-        pool.join()
+        args:
+            username (str): the username for logging into SmartDok.
+            password (str): the password for logging into SmartDok.
 
-        return result
+        returns:
+            int: the status code of the login request.
 
-    def get_reports(self):
-        """gets all reports from SmartDok
-        ------------------------------
-        returns a list of dicts with report data """
-
-        ''' to specify the response model:
-        Inline Model [
-            Inline Model 1
-        ]
-        Inline Model 1 {
-            Id (integer, optional, read only),
-            FilledOutDate (string, optional, read only),
-            FilledOutBy (string, optional, read only),
-            FilledOutById (string, optional, read only),
-            Subject (string, optional, read only),
-            SerialNumber (integer, optional, read only),
-            FormTemplateId (integer, optional, read only),
-            ModuleType (integer, optional, read only) = ['1', '2'],
-            MainSerialNumber (string, optional, read only),
-            ProjectId (integer, optional, read only),
-            SubProjectId (integer, optional, read only),
-            MachineId (integer, optional, read only),
-            LastUpdated (string, optional, read only)
-        }'''
-
-        response = self.session.get(f"{self.api_url}forms/v2", headers=self.headers)
-
-        response = response.json()
-
-        return response
-
-    def get_report_pdf(self, report_id: int):
-        """gets the pdf data for a report by id
-        -----------------------------------
-        report_id (int) = id of the report to get pdf data for """
-        payload = {
-            'Token': self.token,
-            'UserId': self.userid,
-            'fileName': f'Checklist_{report_id}.pdf',
-            'formIds': [report_id],
-            'includeHistory': True,
+        raises:
+            Exception: if the login request fails or the login is unsuccessful.
+        """
+        # we have structured the form data like this because we need to retrieve the values of the hidden inputs.
+        # this approach helps avoid the need to write the long key name every time we interact with the hidden input values.
+        raw_form_data = {
+            'viewstate':            {'key': '__VIEWSTATE', 'value': ''},
+            'viewstategenerator':   {'key': '__VIEWSTATEGENERATOR', 'value': ''},
+            'eventvalidation':      {'key': '__EVENTVALIDATION', 'value': ''},
+            'forgerytoken':         {'key': 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken', 'value': ''},
+            'username':             {'key': 'SmartDokLoginView$LoginSmartDok$UserName', 'value': username},
+            'password':             {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
+            'loginbutton':          {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
         }
 
-        response = self.session.post(f"{self.web_api_url}/Form/GetFormsPdf/{report_id}",
-                                     json=payload, headers=self.headers)
+        login_page = self.session.get(self.base_url)
+        soup = BeautifulSoup(login_page.text, 'html.parser')
 
-        return response.content
+        for meta_key, inner_dict in raw_form_data.items():
+            # we skip username and password because we already have them in the raw_form_data dict.
+            if meta_key == 'username' or meta_key == 'password':
+                continue
+            inner_dict['value'] = utils.soup_find_input_value(soup, inner_dict['key'])
 
-    def get_deviations(self, deviation_type, amount_of_deviations=0, days_back=0):
-        """Gets all deviations from SmartDok including only id and type
-        ------------------------------
-        deviation_type = type of deviation to get | rue = RUH | qd = quality-deviation
-        amount_of_deviations = number of deviations to fetch | (default = 0) | 0 = all deviations | 10 = 10 deviations
-        days_back = number of days back to fetch deviations from | (default = 0) | 0 = all deviations
-                    1 = deviations from last 24 hours | 2 = deviations from last 48 hours | etc.
+        form_data = utils.dict_with_dict_to_dict(raw_form_data)
+
+        login = self.session.post(f'{self.base_url}/index.aspx', data=form_data)
+       
+        utils.verify_login(login)
+
+        return login
+    
+    def get_single_record(self, record_id: str = None, record_type: str = None) -> dict:
         """
+        retrieves a single record from the SmartDok API.
 
-        to_date = datetime.datetime.now().replace(microsecond=0)
-        # +01:00 is the timezone in SmartDok
-        timezone = '+01:00'
-        if days_back == 0:
-            from_date = ''
+        args:
+            record_id (str): the ID of the record to retrieve.
+            record_type (str): the type of the record to retrieve.
+
+        returns:
+            dict: the processed data of the retrieved record.
+
+        raises:
+            Exception: if the request to the API fails.
+            ValueError: if the record_type is unknown.
+        """
+        utils.verify_record_type(record_type)
+        
+        params = {
+            'id': record_id,
+            'getAccessRights': 'true'
+        }
+
+        response = self.session.get(f'{self.web_api_url}/{record_type}/report', params=params)
+
+        if response.status_code != 200:
+            raise Exception(f'request status code {response.status_code} != 200')
+
+        respone_data = response.json()
+
+        if record_type == 'qd':
+            processed_data = utils.convert_smartdok_qd_record_to_dict(respone_data)
+        elif record_type == 'rue':
+            processed_data = utils.convert_smartdok_rue_record_to_dict(respone_data)
         else:
-            from_date = f'{to_date - datetime.timedelta(days=days_back)}{timezone}'
+            raise ValueError(f'Unknown record_type: {record_type}')
 
-        options = {
-            'FromDate': from_date,
-            'ToDate': f'{to_date}{timezone}',
-            'Take': amount_of_deviations,
-        }
+        return processed_data
 
-        deviations = []
-
-        response = self.session.get(f'{self.web_api_url}/{deviation_type}/overview',
-                                    params=options, headers=self.headers)
-
-        deviation_data = response.json()['data']
-
-        for deviation_id in deviation_data:
-            new_deviation = {
-                'id': deviation_id['Id'],
-                'type': deviation_type
-            }
-            deviations.append(new_deviation)
-
-        return deviations
-
-    def get_deviation(self, base_deviation: dict):
-        """get deviation data from SmartDok with the use of base_deviation"""
-
-        params = {
-            'id': base_deviation['id'],
-            'getAccessRights': 'true',
-            'newSeverityValuesCompliant': 'true',
-        }
-
-        response = self.session.get(f"{self.web_api_url}/{base_deviation['type']}/report",
-                                    params=params, headers=self.headers)
-
-        deviation = response.json()
-
-        img_list = []
-
-        for img_num in deviation['Pictures']:
-            img = requests.get(img_num['Url'], timeout=60)
-            img_data = img.content
-
-            img_dict = {
-                'Filename': img_num['Filename'],
-                'ImageType': img_num['ImageType'],
-                'Img': img_data
-            }
-
-            img_list.append(img_dict)
-
-        # base deviation data that is the same for all deviation types
-        deviation_data = {
-            'Title': deviation['Title'],
-            'Description': deviation['Description'],
-            'SubmitterName': deviation['SubmitterName'],
-            'ProjectNumber': deviation['ProjectNumber'],
-            'Pictures': img_list,
-        }
-
-        # get deviation data based on deviation type
-        # rue = RUH
-        if base_deviation['type'] == 'rue':
-            deviation_data['EventId'] = deviation['EventId']
-            deviation_data['Category'] = deviation['Values'][0]['Values'][0]['Name']
-            deviation_data['SubCategory'] = deviation['Values'][1]['Values'][0]['Name']
-            deviation_data['OwnerName'] = deviation['OwnerName']
-            deviation_data['type'] = 'rue'
-        # qd = quality-deviation
-        elif base_deviation['type'] == 'qd':
-            deviation_data['DeviationId'] = deviation['DeviationId']
-            deviation_data['CaseWorkerName'] = deviation['CaseWorkerName']
-            deviation_data['type'] = 'qd'
-
-            # get category and subcategory id from deviation
-            category_type = deviation['Values'][0]['Type']
-            category_id = deviation['Values'][0]['Values'][0]
-            subcategory_type = deviation['Values'][1]['Type']
-            subcategory_id = []
-            for subcategory in deviation['Values'][1]['Values']:
-                subcategory_id.append(subcategory)
-
-            # get category and subcategory names from id
-            deviation_data['Category'] = self.get_qd_category(deviation, category_type, category_id)
-            deviation_data['SubCategory'] = self.get_qd_category(deviation, subcategory_type, subcategory_id)
-
-        return deviation_data
-
-    def apply_deviation_status(self, deviation_id, deviation_type, status=2):
-        """Applies deviation status to given deviation by id
-        ------------------------------
-        deviation_id = id of the deviation to apply status to
-        deviation_type = type of deviation to apply status to | rue = RUE, qd = quality-deviation
-        status = status to apply to deviation | (default = 2) | 0 = untreated 1 = open, 2 = closed, 3 = rejected
-                returns a requests.Response object
+    def get_single_record_wrapper(self, args):
         """
+        wrapper method for getting a single record.
+
+        args:
+            args: the arguments to be passed to the `get_single_record` method.
+
+        returns:
+            the result of the `get_single_record` method.
+        """
+        return self.get_single_record(*args)
+
+    def get_all_records(self, record_type: str = None, days_back: int = 0) -> list:
+        """
+        retrieves all records of a specified type within a given time range.
+
+        args:
+            record_type (str): the type of records to retrieve.
+            days_back (int): the number of days back from the current date to retrieve records.
+
+        returns:
+            list: a list of records.
+
+        raises:
+            ValueError: if the record_type is invalid.
+
+        """
+        utils.verify_record_type(record_type)
+        
+        records = []
+
+        if days_back > 0:
+            today_date, days_back_date = utils.convert_date_to_smartdok_date_format(days_back)
+        else:
+            today_date = ''
+            days_back_date = ''
 
         params = {
-            'id': deviation_id,
-            'status': status,
+            'FromDate': days_back_date,
+            'ToDate': today_date,
+            'take': '',
         }
 
-        response = self.session.post(f"{self.web_api_url}/{deviation_type}/change-status",
-                                     params=params, headers=self.headers)
-        return response
+        response_all_records = self.session.get(f'{self.web_api_url}/{record_type}/overview', params=params)
+        
+        # remove .text = the JSON object must be str, bytes or bytearray, not Response
+        response_all_records_data_raw = response_all_records.json()
+        response_all_records_data = response_all_records_data_raw['data']
 
-    @staticmethod
-    def get_qd_category(deviations, category_type, category_id):
-        """get_qd_category is used to get category and subcategory names from id"""
-        test_if_list = isinstance(category_id, list)
-        for types in deviations['Definition']['Values']:
-            if types['Type'] == category_type:
-                if test_if_list:
-                    new_category_id = []
-                    for ID in category_id:
-                        for name in types['Values']:
-                            if ID == name['Id']:
-                                new_category_id.append(name['Name'])
-                    return new_category_id
-                else:
-                    for name in types['Values']:
-                        if category_id == name['Id']:
-                            category_id = name['Name']
-                            return category_id
+        record_ids = [record['Id'] for record in response_all_records_data]
 
-    # all functions below are used to log in to SmartDok and get the required data to use the browser version of the API
-    def get_auth_fields(self):
-        """get get_auth_fields is just to scrape info and return as login data"""
-        forgery_key = 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken'
-        viewstate_key = '__VIEWSTATE'
-        eventvalidation_key = '__EVENTVALIDATION'
+        # set the number of processes you want to use (adjust as needed)
+        num_processes = cpu_count()
 
-        soup = self.session.get(self.base_url)
-        page = bs(soup.text, 'html.parser')
-
-        forgery = page.find('input', attrs={'name': forgery_key})
-        forgery = forgery['value']
-
-        viewstate = page.find('input', attrs={'name': viewstate_key})
-        viewstate = viewstate['value']
-
-        eventvalidation = page.find('input', attrs={'name': eventvalidation_key})
-        eventvalidation = eventvalidation['value']
-
-        auth_fields = {
-            viewstate_key: viewstate,
-            eventvalidation_key: eventvalidation,
-            'SmartDokLoginView$LoginSmartDok$UserName': self.credentials['username'],
-            'SmartDokLoginView$LoginSmartDok$Password': self.credentials['password'],
-            forgery_key: forgery,
-            'SmartDokLoginView$LoginSmartDok$LoginButton': 'Logg inn'
-        }
-
-        return auth_fields
-
-    @staticmethod
-    def get_auth_string(login_page):
-        """extract auth string from login_page"""
-        page = login_page.text
-
-        char_remove = ['\n', '\r', '\t', '\\']
-        for char in char_remove:
-            page = page.replace(char, '')
-
-        split_text = page.split('{')
-
-        auth_string = ''
-
-        for text in split_text:
-            if 'Token":' in text:
-                auth_string = text
-
-        return auth_string
-
-    @staticmethod
-    def get_token(auth_string):
-        """gets Token value out of auth string"""
-        text = auth_string.split(',')
-
-        token = ''
-        char_remove = ['"', 'Token:']
-
-        for line in text:
-            if '"Token"' in line:
-                token = line
-
-        for char in char_remove:
-            token = token.replace(char, '')
-
-        return token
-
-    @staticmethod
-    def get_userid(auth_string):
-        """gets UserID value out of auth string"""
-        text = auth_string.split(',')
-
-        userid = ''
-        char_remove = ['"', 'UserId:']
-
-        for line in text:
-            if '"UserId"' in line:
-                userid = line
-
-        for char in char_remove:
-            userid = userid.replace(char, '')
-
-        return userid
+        # create a pool of processes
+        with Pool(processes=num_processes) as p:
+            # use pool.map to parallelize the execution of get_single_record
+            record_args = [(record_id, record_type) for record_id in record_ids]
+            # this line is using the map method of the pool to apply the get_single_record_wrapper function to every item in record_args. The map method blocks until all the function calls are completed. The results are returned as a list and assigned to records.
+            records = p.map(self.get_single_record_wrapper, record_args)
+        p.close()
+        p.join()
+        
+        return records
