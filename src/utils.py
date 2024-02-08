@@ -51,7 +51,7 @@ def dict_with_dict_to_dict(input_dict: dict = None) -> dict:
 def convert_smartdok_rue_record_to_dict(raw_record: dict = None) -> dict:
     # TODO: implement this function
     # dident implement this function because we dont use the api to get rue records.
-    return Exception(f'this isent implemented yet - raw_record={raw_record} was not converted to a dict')
+    return NotImplementedError(f'this isent implemented yet - raw_record={raw_record} was not converted to a dict')
 
 def convert_smartdok_qd_record_to_dict(raw_record: dict = None) -> dict:
     # qd = quality deviation
