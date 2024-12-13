@@ -7,8 +7,9 @@ from bs4 import BeautifulSoup
 import utils
 
 
-class Client:
-    def __init__(self, username: str = None, password: str = None, user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
+class WebClient:
+    def __init__(self, username: str = None, password: str = None,
+                 user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
         """
         initializes an instance of the `pysmartdok` class.
 
@@ -19,7 +20,7 @@ class Client:
         """
         logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] - %(asctime)s - %(message)s')
         utils.verify_init_params(username, password, user_agent)
-        
+
         # we use this user agent because SmartDok blocks the default Python user agent.
         # it's necessary to employ a user agent that SmartDok does not block.
         # the 'X-CSRF' header is required by SmartDok to prevent CSRF attacks.
@@ -38,7 +39,6 @@ class Client:
         response = self.smartdok_login(username, password)
         if response.status_code != 200:
             raise Exception(f'request status code {response.status_code} != 200')
-        
 
     def smartdok_login(self, username: str = None, password: str = None) -> requests.Response:
         """
@@ -57,13 +57,13 @@ class Client:
         # we have structured the form data like this because we need to retrieve the values of the hidden inputs.
         # this approach helps avoid the need to write the long key name every time we interact with the hidden input values.
         raw_form_data = {
-            'viewstate':            {'key': '__VIEWSTATE', 'value': ''},
-            'viewstategenerator':   {'key': '__VIEWSTATEGENERATOR', 'value': ''},
-            'eventvalidation':      {'key': '__EVENTVALIDATION', 'value': ''},
-            'forgerytoken':         {'key': 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken', 'value': ''},
-            'username':             {'key': 'SmartDokLoginView$LoginSmartDok$UserName', 'value': username},
-            'password':             {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
-            'loginbutton':          {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
+            'viewstate': {'key': '__VIEWSTATE', 'value': ''},
+            'viewstategenerator': {'key': '__VIEWSTATEGENERATOR', 'value': ''},
+            'eventvalidation': {'key': '__EVENTVALIDATION', 'value': ''},
+            'forgerytoken': {'key': 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken', 'value': ''},
+            'username': {'key': 'SmartDokLoginView$LoginSmartDok$UserName', 'value': username},
+            'password': {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
+            'loginbutton': {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
         }
 
         login_page = self.session.get(self.base_url)
@@ -78,11 +78,11 @@ class Client:
         form_data = utils.dict_with_dict_to_dict(raw_form_data)
 
         login = self.session.post(f'{self.base_url}/index.aspx', data=form_data)
-       
+
         utils.verify_login(login)
 
         return login
-    
+
     def get_single_record(self, record_id: str = None, record_type: str = None) -> dict:
         """
         retrieves a single record from the SmartDok API.
@@ -99,7 +99,7 @@ class Client:
             ValueError: if the record_type is unknown.
         """
         utils.verify_record_type(record_type)
-        
+
         params = {
             'id': record_id,
             'getAccessRights': 'true'
@@ -149,7 +149,7 @@ class Client:
 
         """
         utils.verify_record_type(record_type)
-        
+
         records = []
 
         if days_back > 0:
@@ -165,7 +165,7 @@ class Client:
         }
 
         response_all_records = self.session.get(f'{self.web_api_url}/{record_type}/overview', params=params)
-        
+
         # remove .text = the JSON object must be str, bytes or bytearray, not Response
         response_all_records_data_raw = response_all_records.json()
         response_all_records_data = response_all_records_data_raw['data']
@@ -183,5 +183,5 @@ class Client:
             records = p.map(self.get_single_record_wrapper, record_args)
         p.close()
         p.join()
-        
+
         return records

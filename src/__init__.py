@@ -1,4 +1,4 @@
-from .pysmartdok import *
+from .web_client import *
 from .api_client import *
 
 __all__ = ["Client", "ApiClient"]
