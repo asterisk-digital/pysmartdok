@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 import requests
 from bs4 import BeautifulSoup
 
-import utils
+import pysmartdok_utils
 
 
 class WebClient:
@@ -19,7 +19,7 @@ class WebClient:
             user_agent (str, optional): the user agent to be used for the HTTP requests. defaults to 'intrix-pysmartdok(post@intrix.no)'.
         """
         logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] - %(asctime)s - %(message)s')
-        utils.verify_init_params(username, password, user_agent)
+        pysmartdok_utils.verify_init_params(username, password, user_agent)
 
         # we use this user agent because SmartDok blocks the default Python user agent.
         # it's necessary to employ a user agent that SmartDok does not block.
@@ -73,13 +73,13 @@ class WebClient:
             # we skip username and password because we already have them in the raw_form_data dict.
             if meta_key == 'username' or meta_key == 'password':
                 continue
-            inner_dict['value'] = utils.soup_find_input_value(soup, inner_dict['key'])
+            inner_dict['value'] = pysmartdok_utils.soup_find_input_value(soup, inner_dict['key'])
 
-        form_data = utils.dict_with_dict_to_dict(raw_form_data)
+        form_data = pysmartdok_utils.dict_with_dict_to_dict(raw_form_data)
 
         login = self.session.post(f'{self.base_url}/index.aspx', data=form_data)
 
-        utils.verify_login(login)
+        pysmartdok_utils.verify_login(login)
 
         return login
 
@@ -98,7 +98,7 @@ class WebClient:
             Exception: if the request to the API fails.
             ValueError: if the record_type is unknown.
         """
-        utils.verify_record_type(record_type)
+        pysmartdok_utils.verify_record_type(record_type)
 
         params = {
             'id': record_id,
@@ -113,9 +113,9 @@ class WebClient:
         respone_data = response.json()
 
         if record_type == 'qd':
-            processed_data = utils.convert_smartdok_qd_record_to_dict(respone_data)
+            processed_data = pysmartdok_utils.convert_smartdok_qd_record_to_dict(respone_data)
         elif record_type == 'rue':
-            processed_data = utils.convert_smartdok_rue_record_to_dict(respone_data)
+            processed_data = pysmartdok_utils.convert_smartdok_rue_record_to_dict(respone_data)
         else:
             raise ValueError(f'Unknown record_type: {record_type}')
 
@@ -148,12 +148,12 @@ class WebClient:
             ValueError: if the record_type is invalid.
 
         """
-        utils.verify_record_type(record_type)
+        pysmartdok_utils.verify_record_type(record_type)
 
         records = []
 
         if days_back > 0:
-            today_date, days_back_date = utils.convert_date_to_smartdok_date_format(days_back)
+            today_date, days_back_date = pysmartdok_utils.convert_date_to_smartdok_date_format(days_back)
         else:
             today_date = ''
             days_back_date = ''
