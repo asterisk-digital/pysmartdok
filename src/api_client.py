@@ -44,4 +44,6 @@ class ApiClient:
             raise SmartDokApiError('Failed to get QD data from SmartDok API. Items not found in response.'
                                    + ' Response body: ' + response.text)
 
-        return response.json()['Items']
+        items = response.json()['Items']
+
+        return items
