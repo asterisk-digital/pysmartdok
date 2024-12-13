@@ -32,7 +32,7 @@ class ApiClient:
         self.headers = {'Authorization': 'Bearer ' + session_token}
 
     def get_qd(self):
-        url = self.api_url + 'qd'
+        url = self.api_url + 'qd/v2'
         response = requests.get(url, headers=self.headers)
         if response.status_code >= 300:
             raise SmartDokApiError(
