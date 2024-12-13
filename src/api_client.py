@@ -1,4 +1,6 @@
 import json
+from array import ArrayType
+from typing import List, Dict
 
 import requests
 
@@ -31,7 +33,7 @@ class ApiClient:
 
         self.headers = {'Authorization': 'Bearer ' + session_token}
 
-    def get_qd(self):
+    def get_qd(self) -> List[Dict]:
         url = self.api_url + 'qd/v2'
         response = requests.get(url, headers=self.headers)
         if response.status_code >= 300:
