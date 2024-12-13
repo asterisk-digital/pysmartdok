@@ -1,4 +1,6 @@
 import json
+from array import ArrayType
+from typing import List, Dict
 
 import requests
 
@@ -31,8 +33,8 @@ class ApiClient:
 
         self.headers = {'Authorization': 'Bearer ' + session_token}
 
-    def get_qd(self):
-        url = self.api_url + 'qd'
+    def get_qd(self) -> List[Dict]:
+        url = self.api_url + 'qd/v2'
         response = requests.get(url, headers=self.headers)
         if response.status_code >= 300:
             raise SmartDokApiError(
@@ -44,4 +46,6 @@ class ApiClient:
             raise SmartDokApiError('Failed to get QD data from SmartDok API. Items not found in response.'
                                    + ' Response body: ' + response.text)
 
-        return response.json()['Items']
+        items = response.json()['Items']
+
+        return items

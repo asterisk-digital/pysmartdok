@@ -4,11 +4,12 @@ from multiprocessing import Pool, cpu_count
 import requests
 from bs4 import BeautifulSoup
 
-import utils
+import pysmartdok_utils
 
 
-class Client:
-    def __init__(self, username: str = None, password: str = None, user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
+class WebClient:
+    def __init__(self, username: str = None, password: str = None,
+                 user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
         """
         initializes an instance of the `pysmartdok` class.
 
@@ -18,8 +19,8 @@ class Client:
             user_agent (str, optional): the user agent to be used for the HTTP requests. defaults to 'intrix-pysmartdok(post@intrix.no)'.
         """
         logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] - %(asctime)s - %(message)s')
-        utils.verify_init_params(username, password, user_agent)
-        
+        pysmartdok_utils.verify_init_params(username, password, user_agent)
+
         # we use this user agent because SmartDok blocks the default Python user agent.
         # it's necessary to employ a user agent that SmartDok does not block.
         # the 'X-CSRF' header is required by SmartDok to prevent CSRF attacks.
@@ -38,7 +39,6 @@ class Client:
         response = self.smartdok_login(username, password)
         if response.status_code != 200:
             raise Exception(f'request status code {response.status_code} != 200')
-        
 
     def smartdok_login(self, username: str = None, password: str = None) -> requests.Response:
         """
@@ -57,13 +57,13 @@ class Client:
         # we have structured the form data like this because we need to retrieve the values of the hidden inputs.
         # this approach helps avoid the need to write the long key name every time we interact with the hidden input values.
         raw_form_data = {
-            'viewstate':            {'key': '__VIEWSTATE', 'value': ''},
-            'viewstategenerator':   {'key': '__VIEWSTATEGENERATOR', 'value': ''},
-            'eventvalidation':      {'key': '__EVENTVALIDATION', 'value': ''},
-            'forgerytoken':         {'key': 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken', 'value': ''},
-            'username':             {'key': 'SmartDokLoginView$LoginSmartDok$UserName', 'value': username},
-            'password':             {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
-            'loginbutton':          {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
+            'viewstate': {'key': '__VIEWSTATE', 'value': ''},
+            'viewstategenerator': {'key': '__VIEWSTATEGENERATOR', 'value': ''},
+            'eventvalidation': {'key': '__EVENTVALIDATION', 'value': ''},
+            'forgerytoken': {'key': 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken', 'value': ''},
+            'username': {'key': 'SmartDokLoginView$LoginSmartDok$UserName', 'value': username},
+            'password': {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
+            'loginbutton': {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
         }
 
         login_page = self.session.get(self.base_url)
@@ -73,16 +73,16 @@ class Client:
             # we skip username and password because we already have them in the raw_form_data dict.
             if meta_key == 'username' or meta_key == 'password':
                 continue
-            inner_dict['value'] = utils.soup_find_input_value(soup, inner_dict['key'])
+            inner_dict['value'] = pysmartdok_utils.soup_find_input_value(soup, inner_dict['key'])
 
-        form_data = utils.dict_with_dict_to_dict(raw_form_data)
+        form_data = pysmartdok_utils.dict_with_dict_to_dict(raw_form_data)
 
         login = self.session.post(f'{self.base_url}/index.aspx', data=form_data)
-       
-        utils.verify_login(login)
+
+        pysmartdok_utils.verify_login(login)
 
         return login
-    
+
     def get_single_record(self, record_id: str = None, record_type: str = None) -> dict:
         """
         retrieves a single record from the SmartDok API.
@@ -98,8 +98,8 @@ class Client:
             Exception: if the request to the API fails.
             ValueError: if the record_type is unknown.
         """
-        utils.verify_record_type(record_type)
-        
+        pysmartdok_utils.verify_record_type(record_type)
+
         params = {
             'id': record_id,
             'getAccessRights': 'true'
@@ -113,9 +113,9 @@ class Client:
         respone_data = response.json()
 
         if record_type == 'qd':
-            processed_data = utils.convert_smartdok_qd_record_to_dict(respone_data)
+            processed_data = pysmartdok_utils.convert_smartdok_qd_record_to_dict(respone_data)
         elif record_type == 'rue':
-            processed_data = utils.convert_smartdok_rue_record_to_dict(respone_data)
+            processed_data = pysmartdok_utils.convert_smartdok_rue_record_to_dict(respone_data)
         else:
             raise ValueError(f'Unknown record_type: {record_type}')
 
@@ -148,12 +148,12 @@ class Client:
             ValueError: if the record_type is invalid.
 
         """
-        utils.verify_record_type(record_type)
-        
+        pysmartdok_utils.verify_record_type(record_type)
+
         records = []
 
         if days_back > 0:
-            today_date, days_back_date = utils.convert_date_to_smartdok_date_format(days_back)
+            today_date, days_back_date = pysmartdok_utils.convert_date_to_smartdok_date_format(days_back)
         else:
             today_date = ''
             days_back_date = ''
@@ -165,7 +165,7 @@ class Client:
         }
 
         response_all_records = self.session.get(f'{self.web_api_url}/{record_type}/overview', params=params)
-        
+
         # remove .text = the JSON object must be str, bytes or bytearray, not Response
         response_all_records_data_raw = response_all_records.json()
         response_all_records_data = response_all_records_data_raw['data']
@@ -183,5 +183,5 @@ class Client:
             records = p.map(self.get_single_record_wrapper, record_args)
         p.close()
         p.join()
-        
+
         return records
