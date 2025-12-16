@@ -2,9 +2,20 @@
 
 A Python library for SmartDok' API. Under active development.
 
-# Usage
+## Setup
+To set up for development, run:
+```
+uv sync
+```
 
-The library can be used as follows:
+## Installation
+To use in a project, add this in dependencies in pyproject.toml:
+
+```
+"pysmartdok @ git+ssh://git@github.com/asterisk-digital/pysmartdok.git@main"
+```
+
+## Usage
 
 ```
 import pysmartdok
