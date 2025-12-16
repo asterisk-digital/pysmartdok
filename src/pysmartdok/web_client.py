@@ -4,7 +4,7 @@ from multiprocessing import Pool, cpu_count
 import requests
 from bs4 import BeautifulSoup
 
-import pysmartdok_utils
+from . import pysmartdok_utils
 
 
 class WebClient:
