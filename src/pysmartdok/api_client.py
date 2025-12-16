@@ -49,3 +49,16 @@ class ApiClient:
         items = response.json()['Items']
 
         return items
+
+    def get_rue(self) -> list[dict]:
+        url = self.api_url + "rue"
+        response = requests.get(url, headers=self.headers)
+        response.raise_for_status()
+
+        if 'Items' not in response.json():
+            raise SmartDokApiError('Failed to get QD data from SmartDok API. Items not found in response.'
+                                   + ' Response body: ' + response.text)
+
+        items = response.json()['Items']
+
+        return items
