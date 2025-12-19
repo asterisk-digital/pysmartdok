@@ -62,3 +62,12 @@ class ApiClient:
         items = response.json()['Items']
 
         return items
+
+    def get_projects(self) -> list[dict]:
+        url = self.api_url + "Projects"
+        query_params = {"all": "true"}
+        response = requests.get(url, headers=self.headers, params=query_params)
+        response.raise_for_status()
+
+        items = response.json()['Items']
+        return items
