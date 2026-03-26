@@ -10,13 +10,11 @@ license = { text = "MIT" }
 
 dependencies = [
     "beautifulsoup4>=4.12.2",
-    "requests>=2.32.5"
-]
-
-[dependency-groups]
-dev = [
+    "requests>=2.32.5",
     "pytest>=9.0.2",
     "python-dotenv>=1.2.1",
+    "tox>=4",
+    "tox-uv>=1.25",
 ]
 
 [build-system]

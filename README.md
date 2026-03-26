@@ -72,3 +72,30 @@ records = client.get_all_records(record_type="qd", days_back=30)
 # Get a single record by ID
 record = client.get_single_record(record_id="12345", record_type="qd")
 ```
+
+## Development
+
+### Setup
+
+To set up the python environment you need `uv`, then run:
+```(bash)
+uv sync
+```
+
+### Run linter
+
+```(bash)
+uv run ruff check .
+```
+
+### Run tests
+
+```(bash)
+uv run tox
+```
+
+### Run formatter
+
+```(bash)
+uv run ruff format .
+```
