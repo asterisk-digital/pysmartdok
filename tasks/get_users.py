@@ -9,7 +9,7 @@ def main():
     dotenv.load_dotenv()
     client = pysmartdok.ApiClient(api_token=os.getenv("SMARTDOK_API_KEY"))
 
-    data = client.users.get_users(include_verified=True)
+    data = client.users.get_users(include_inactive=True)
     print(data)
 
 
