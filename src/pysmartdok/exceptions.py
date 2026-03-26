@@ -1,0 +1,2 @@
+class SmartDokApiError(Exception):
+    pass
