@@ -96,32 +96,36 @@ class ApiClient:
         project_id: Optional[int] = None,
         subproject_id: Optional[int] = None,
         rue_status: Optional[str] = None,
-        offset: int = 0,
-        count: int = 100,
-    ) -> dict:
-        """Get a paginated list of RUE report summaries.
-
-        Returns the full response dict with 'Items', 'Count', 'Offset', and 'TotalCount'.
-        """
+    ) -> list[dict]:
+        """Get all RUE report summaries, handling pagination automatically."""
         url = self.api_url + "rue/summaries"
-        params: dict = {"Offset": offset, "Count": count}
-        if last_updated_since is not None:
-            params["LastUpdatedSince"] = last_updated_since
-        if project_id is not None:
-            params["ProjectId"] = project_id
-        if subproject_id is not None:
-            params["SubprojectId"] = subproject_id
-        if rue_status is not None:
-            params["RueStatus"] = rue_status
+        all_items = []
+        offset = 0
+        while True:
+            params: dict = {"Offset": offset, "Count": 100}
+            if last_updated_since is not None:
+                params["LastUpdatedSince"] = last_updated_since
+            if project_id is not None:
+                params["ProjectId"] = project_id
+            if subproject_id is not None:
+                params["SubprojectId"] = subproject_id
+            if rue_status is not None:
+                params["RueStatus"] = rue_status
 
-        response = requests.get(url, headers=self.headers, params=params)
-        response.raise_for_status()
+            response = requests.get(url, headers=self.headers, params=params)
+            response.raise_for_status()
 
-        data = response.json()
-        if 'Items' not in data:
-            raise SmartDokApiError('Failed to get RUE summaries from SmartDok API. Items not found in response.'
-                                   + ' Response body: ' + response.text)
-        return data
+            data = response.json()
+            if "Items" not in data:
+                raise SmartDokApiError(
+                    "Failed to get RUE summaries from SmartDok API. Items not found in response."
+                    + " Response body: " + response.text
+                )
+            all_items.extend(data["Items"])
+            if offset + data["Count"] >= data["TotalCount"]:
+                break
+            offset += data["Count"]
+        return all_items
 
     def get_rue_report(self, rue_id: int) -> dict:
         """Get a single RUE report with full detail."""
