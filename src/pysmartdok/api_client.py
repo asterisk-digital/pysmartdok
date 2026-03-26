@@ -19,6 +19,8 @@ class ApiClient:
         self.api_url = "https://api.smartdok.no/"
         self.headers = {}
         self.authenticate()
+        # Headers are set by authenticate
+        self.users = Users(self.api_url, self.headers)
 
     def authenticate(self):
         url = self.api_url + "Authorize/ApiToken"
@@ -39,7 +41,6 @@ class ApiClient:
         session_token = response.text.replace('"', "")
 
         self.headers = {"Authorization": "Bearer " + session_token}
-        self.users = Users(self.api_url, self.headers)
 
     def get_qd(self) -> List[Dict]:
         url = self.api_url + "qd/v2"
