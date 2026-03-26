@@ -9,12 +9,13 @@ readme = "README.md"
 license = { text = "MIT" }
 
 dependencies = [
-    "beautifulsoup4>=4.12.2",
-    "requests>=2.32.5",
-    "pytest>=9.0.2",
-    "python-dotenv>=1.2.1",
-    "tox>=4",
-    "tox-uv>=1.25",
+    "requests==2.33.0",
+    "python-dotenv==1.2.2",
+    "beautifulsoup4==4.14.3",
+    "ruff==0.15.7",
+    "pytest==9.0.2",
+    "tox==4.50.3",
+    "tox-uv==1.33.4",
 ]
 
 [build-system]
