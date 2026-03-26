@@ -8,8 +8,12 @@ from . import pysmartdok_utils
 
 
 class WebClient:
-    def __init__(self, username: str = None, password: str = None,
-                 user_agent: str = 'intrix-pysmartdok(post@intrix.no)'):
+    def __init__(
+        self,
+        username: str = None,
+        password: str = None,
+        user_agent: str = "intrix-pysmartdok(post@intrix.no)",
+    ):
         """
         initializes an instance of the `pysmartdok` class.
 
@@ -18,7 +22,9 @@ class WebClient:
             password (str, required): the password for SmartDok login. defaults to None.
             user_agent (str, optional): the user agent to be used for the HTTP requests. defaults to 'intrix-pysmartdok(post@intrix.no)'.
         """
-        logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] - %(asctime)s - %(message)s')
+        logging.basicConfig(
+            level=logging.DEBUG, format="[%(levelname)s] - %(asctime)s - %(message)s"
+        )
         pysmartdok_utils.verify_init_params(username, password, user_agent)
 
         # we use this user agent because SmartDok blocks the default Python user agent.
@@ -26,21 +32,23 @@ class WebClient:
         # the 'X-CSRF' header is required by SmartDok to prevent CSRF attacks.
         # we initialize it to be empty as its specific value is unknown; it only needs to be present in the headers.
         headers = {
-            'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 [{user_agent}]',
-            'X-CSRF': '',
+            "User-Agent": f"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 [{user_agent}]",
+            "X-CSRF": "",
         }
 
         self.session = requests.Session()
         self.session.headers.update(headers)
 
-        self.base_url = 'https://web.smartdok.no'
-        self.web_api_url = f'{self.base_url}/smartapi'
+        self.base_url = "https://web.smartdok.no"
+        self.web_api_url = f"{self.base_url}/smartapi"
 
         response = self.smartdok_login(username, password)
         if response.status_code != 200:
-            raise Exception(f'request status code {response.status_code} != 200')
+            raise Exception(f"request status code {response.status_code} != 200")
 
-    def smartdok_login(self, username: str = None, password: str = None) -> requests.Response:
+    def smartdok_login(
+        self, username: str = None, password: str = None
+    ) -> requests.Response:
         """
         logs into the SmartDok website using the provided username and password.
 
@@ -57,27 +65,41 @@ class WebClient:
         # we have structured the form data like this because we need to retrieve the values of the hidden inputs.
         # this approach helps avoid the need to write the long key name every time we interact with the hidden input values.
         raw_form_data = {
-            'viewstate': {'key': '__VIEWSTATE', 'value': ''},
-            'viewstategenerator': {'key': '__VIEWSTATEGENERATOR', 'value': ''},
-            'eventvalidation': {'key': '__EVENTVALIDATION', 'value': ''},
-            'forgerytoken': {'key': 'SmartDokLoginView$LoginSmartDok$__antiForgeryToken', 'value': ''},
-            'username': {'key': 'SmartDokLoginView$LoginSmartDok$UserName', 'value': username},
-            'password': {'key': 'SmartDokLoginView$LoginSmartDok$Password', 'value': password},
-            'loginbutton': {'key': 'SmartDokLoginView$LoginSmartDok$LoginButton', 'value': ''}
+            "viewstate": {"key": "__VIEWSTATE", "value": ""},
+            "viewstategenerator": {"key": "__VIEWSTATEGENERATOR", "value": ""},
+            "eventvalidation": {"key": "__EVENTVALIDATION", "value": ""},
+            "forgerytoken": {
+                "key": "SmartDokLoginView$LoginSmartDok$__antiForgeryToken",
+                "value": "",
+            },
+            "username": {
+                "key": "SmartDokLoginView$LoginSmartDok$UserName",
+                "value": username,
+            },
+            "password": {
+                "key": "SmartDokLoginView$LoginSmartDok$Password",
+                "value": password,
+            },
+            "loginbutton": {
+                "key": "SmartDokLoginView$LoginSmartDok$LoginButton",
+                "value": "",
+            },
         }
 
         login_page = self.session.get(self.base_url)
-        soup = BeautifulSoup(login_page.text, 'html.parser')
+        soup = BeautifulSoup(login_page.text, "html.parser")
 
         for meta_key, inner_dict in raw_form_data.items():
             # we skip username and password because we already have them in the raw_form_data dict.
-            if meta_key == 'username' or meta_key == 'password':
+            if meta_key == "username" or meta_key == "password":
                 continue
-            inner_dict['value'] = pysmartdok_utils.soup_find_input_value(soup, inner_dict['key'])
+            inner_dict["value"] = pysmartdok_utils.soup_find_input_value(
+                soup, inner_dict["key"]
+            )
 
         form_data = pysmartdok_utils.dict_with_dict_to_dict(raw_form_data)
 
-        login = self.session.post(f'{self.base_url}/index.aspx', data=form_data)
+        login = self.session.post(f"{self.base_url}/index.aspx", data=form_data)
 
         pysmartdok_utils.verify_login(login)
 
@@ -100,24 +122,27 @@ class WebClient:
         """
         pysmartdok_utils.verify_record_type(record_type)
 
-        params = {
-            'id': record_id,
-            'getAccessRights': 'true'
-        }
+        params = {"id": record_id, "getAccessRights": "true"}
 
-        response = self.session.get(f'{self.web_api_url}/{record_type}/report', params=params)
+        response = self.session.get(
+            f"{self.web_api_url}/{record_type}/report", params=params
+        )
 
         if response.status_code != 200:
-            raise Exception(f'request status code {response.status_code} != 200')
+            raise Exception(f"request status code {response.status_code} != 200")
 
         respone_data = response.json()
 
-        if record_type == 'qd':
-            processed_data = pysmartdok_utils.convert_smartdok_qd_record_to_dict(respone_data)
-        elif record_type == 'rue':
-            processed_data = pysmartdok_utils.convert_smartdok_rue_record_to_dict(respone_data)
+        if record_type == "qd":
+            processed_data = pysmartdok_utils.convert_smartdok_qd_record_to_dict(
+                respone_data
+            )
+        elif record_type == "rue":
+            processed_data = pysmartdok_utils.convert_smartdok_rue_record_to_dict(
+                respone_data
+            )
         else:
-            raise ValueError(f'Unknown record_type: {record_type}')
+            raise ValueError(f"Unknown record_type: {record_type}")
 
         return processed_data
 
@@ -153,24 +178,28 @@ class WebClient:
         records = []
 
         if days_back > 0:
-            today_date, days_back_date = pysmartdok_utils.convert_date_to_smartdok_date_format(days_back)
+            today_date, days_back_date = (
+                pysmartdok_utils.convert_date_to_smartdok_date_format(days_back)
+            )
         else:
-            today_date = ''
-            days_back_date = ''
+            today_date = ""
+            days_back_date = ""
 
         params = {
-            'FromDate': days_back_date,
-            'ToDate': today_date,
-            'take': '',
+            "FromDate": days_back_date,
+            "ToDate": today_date,
+            "take": "",
         }
 
-        response_all_records = self.session.get(f'{self.web_api_url}/{record_type}/overview', params=params)
+        response_all_records = self.session.get(
+            f"{self.web_api_url}/{record_type}/overview", params=params
+        )
 
         # remove .text = the JSON object must be str, bytes or bytearray, not Response
         response_all_records_data_raw = response_all_records.json()
-        response_all_records_data = response_all_records_data_raw['data']
+        response_all_records_data = response_all_records_data_raw["data"]
 
-        record_ids = [record['Id'] for record in response_all_records_data]
+        record_ids = [record["Id"] for record in response_all_records_data]
 
         # set the number of processes you want to use (adjust as needed)
         num_processes = cpu_count()

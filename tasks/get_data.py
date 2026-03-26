@@ -9,10 +9,10 @@ def main():
     dotenv.load_dotenv()
     client = pysmartdok.ApiClient(api_token=os.getenv("SMARTDOK_API_KEY"))
 
-    #qds = client.get_qd()
+    # qds = client.get_qd()
     data = client.get_projects()
     print(data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
