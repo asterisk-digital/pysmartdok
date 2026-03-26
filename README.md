@@ -73,7 +73,7 @@ record = client.get_single_record(record_id="12345", record_type="qd")
 
 To set up the python environment you need `uv`, then run:
 ```(bash)
-uv sync
+uv sync --group dev
 ```
 
 ### Run linter
