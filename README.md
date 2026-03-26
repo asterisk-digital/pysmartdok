@@ -2,12 +2,6 @@
 
 A Python library for SmartDok' API. Under active development.
 
-## Setup
-To set up for development, run:
-```
-uv sync
-```
-
 ## Installation
 To use in a project, add this in dependencies in pyproject.toml:
 
