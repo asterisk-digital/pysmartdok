@@ -17,25 +17,58 @@ To use in a project, add this in dependencies in pyproject.toml:
 
 ## Usage
 
-```
+### ApiClient
+
+Uses the SmartDok REST API. Requires an API token.
+
+```python
 import pysmartdok
 
-# Credentials for SmartDok
-# username and password is the same as for the web interface for SmartDok
-credentials = {
-  'username': 'SmartDok_username',
-  'password': 'SmartDok_password',
-}
+client = pysmartdok.ApiClient(api_token="your_api_token")
 
-# Creating a client
-client = pysmartdok.Client(username=credentials['username'], password=credentials['password'])
+# Quality Deviations
+qd_items = client.get_qd()
 
-# Getting data
-result = client.get_all_deviation_data(deviation_type='qd', amount_of_deviations=0, days_back=0, pool_size=1)
-"""only deviation_type is required, the rest are optional
-deviation_type: 'qd' or 'rue' (quality-deviation or RUH ('rapport om uønsket hendelse'))
-amount_of_deviations: 0 = all, 1 = last one, 2 = last two, etc. Default: 0
-days_back: 0 = all, 1 = last 24 hours, 2 = last 48 hours, etc. Default: 0
-pool_size: number of threads to use for fetching data. Default: 1 (no threading)
-"""
+# Projects
+projects = client.get_projects()
+
+# RUE summaries (paginated, replaces deprecated GET /rue)
+summaries = client.get_rue_summaries(
+    project_id=123,           # optional
+    rue_status="Open",        # optional: Open, Close, Unprocessed, Discarded
+    last_updated_since="2024-01-01T00:00:00Z",  # optional
+    offset=0,                 # optional, default 0
+    count=100,                # optional, default 100 (max 100)
+)
+
+# Single RUE report (full detail)
+report = client.get_rue_report(rue_id=456)
+
+# RUE event log (audit trail)
+events = client.get_rue_eventlog(rue_id=456)
+
+# RUE messages/comments
+messages = client.get_rue_messages(rue_id=456)
+
+# RUE PDF
+pdf_info = client.get_rue_pdf(rue_id=456, include_details=True)
+# Returns: {"Filename": "...", "DownloadUrl": "...", "FileSize": ..., "FileDate": "..."}
+```
+
+> **Note:** `get_rue()` still works but is deprecated — it will emit a `DeprecationWarning` and log a warning. Use `get_rue_summaries()` instead.
+
+### WebClient
+
+Uses web scraping via the SmartDok web interface. Requires username and password.
+
+```python
+import pysmartdok
+
+client = pysmartdok.WebClient(username="your_username", password="your_password")
+
+# Get all records of a type ('qd' or 'rue'), optionally filtered by date
+records = client.get_all_records(record_type="qd", days_back=30)
+
+# Get a single record by ID
+record = client.get_single_record(record_id="12345", record_type="qd")
 ```
