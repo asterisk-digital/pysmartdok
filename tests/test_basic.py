@@ -8,7 +8,7 @@ def test_api_client_without_token():
 
     try:
         api_client = pysmartdok.ApiClient(api_token='')
-    except ValueError as e:
+    except ValueError:
         assert True
     else:
         assert False
@@ -20,7 +20,7 @@ def test_api_client_with_token():
 
     try:
         api_client = pysmartdok.ApiClient(api_token='test')
-    except pysmartdok.api_client.SmartDokApiError as e:
+    except pysmartdok.api_client.SmartDokApiError:
         assert True
     else:
         assert False

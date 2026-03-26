@@ -19,7 +19,7 @@ def soup_find_input_value(soup: BeautifulSoup = None, input_name: str = None) ->
     """
     input = soup.find('input', attrs={'name': input_name})
 
-    if input == None:
+    if input is None:
         raise Exception(f'no input found with name {input_name}')
 
     input_value = input['value']
@@ -201,11 +201,11 @@ def verify_init_params(username: str = None, password: str = None, user_agent: s
     raises:
         ValueError: if any of the parameters is None.
     """
-    if username == None:
+    if username is None:
         raise ValueError('username is None')
-    if password == None:
+    if password is None:
         raise ValueError('password is None')
-    if user_agent == None:
+    if user_agent is None:
         raise ValueError('user_agent is None')
     else:
         logging.debug(f'verify_init_params - username={username}, password={password}, user_agent={user_agent}')
@@ -250,7 +250,7 @@ def verify_login(response: requests.Response = None) -> bool:
     soup = BeautifulSoup(response.text, 'html.parser')
 
     # span with id LabelCompanyName is only present when logged in successfully
-    if soup.find('span', attrs={'id': 'LabelCompanyName'}) == None:
+    if soup.find('span', attrs={'id': 'LabelCompanyName'}) is None:
         raise Exception('no span with id LabelCompanyName found')
     else:
         return True
