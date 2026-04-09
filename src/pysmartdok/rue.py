@@ -5,6 +5,14 @@ from typing import Optional
 import requests
 
 from .exceptions import SmartDokApiError
+from .rue_models import (
+    FileInformation,
+    RueEventLog,
+    RueMessage,
+    RueReport,
+    RueReportDetail,
+    RueReportSummary,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +28,7 @@ class Rue:
         project_id: Optional[int] = None,
         subproject_id: Optional[int] = None,
         rue_status: Optional[str] = None,
-    ) -> list[dict]:
+    ) -> list[RueReport]:
         """Get RUE reports. DEPRECATED: Use get_rue_summaries() instead."""
         warnings.warn(
             "get_rue() is deprecated. The GET /rue endpoint has been deprecated by SmartDok. "
@@ -52,7 +60,7 @@ class Rue:
                 + response.text
             )
 
-        return response.json()["Items"]
+        return [RueReport.model_validate(item) for item in response.json()["Items"]]
 
     def get_rue_summaries(
         self,
@@ -60,7 +68,7 @@ class Rue:
         project_id: Optional[int] = None,
         subproject_id: Optional[int] = None,
         rue_status: Optional[str] = None,
-    ) -> list[dict]:
+    ) -> list[RueReportSummary]:
         """Get all RUE report summaries, handling pagination automatically."""
         url = self.api_url + "rue/summaries"
         all_items = []
@@ -86,20 +94,22 @@ class Rue:
                     + " Response body: "
                     + response.text
                 )
-            all_items.extend(data["Items"])
+            all_items.extend(
+                RueReportSummary.model_validate(item) for item in data["Items"]
+            )
             if offset + data["Count"] >= data["TotalCount"]:
                 break
             offset += data["Count"]
         return all_items
 
-    def get_rue_report(self, rue_id: int) -> dict:
+    def get_rue_report(self, rue_id: int) -> RueReportDetail:
         """Get a single RUE report with full detail."""
         url = self.api_url + f"rue/{rue_id}"
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return response.json()
+        return RueReportDetail.model_validate(response.json())
 
-    def get_rue_eventlog(self, rue_id: int) -> list[dict]:
+    def get_rue_eventlog(self, rue_id: int) -> list[RueEventLog]:
         """Get the event log (audit trail) for a RUE report."""
         url = self.api_url + f"rue/{rue_id}/eventlog"
         response = requests.get(url, headers=self.headers)
@@ -112,9 +122,9 @@ class Rue:
                 + " Response body: "
                 + response.text
             )
-        return data["Items"]
+        return [RueEventLog.model_validate(item) for item in data["Items"]]
 
-    def get_rue_messages(self, rue_id: int) -> list[dict]:
+    def get_rue_messages(self, rue_id: int) -> list[RueMessage]:
         """Get messages/comments for a RUE report."""
         url = self.api_url + f"rue/{rue_id}/messages"
         response = requests.get(url, headers=self.headers)
@@ -127,15 +137,14 @@ class Rue:
                 + " Response body: "
                 + response.text
             )
-        return data["Items"]
+        return [RueMessage.model_validate(item) for item in data["Items"]]
 
-    def get_rue_pdf(self, rue_id: int, include_details: bool = False) -> dict:
-        """Get PDF file information for a RUE report.
-
-        Returns a dict with 'Filename', 'DownloadUrl', 'FileSize', and 'FileDate'.
-        """
+    def get_rue_pdf(
+        self, rue_id: int, include_details: bool = False
+    ) -> FileInformation:
+        """Get PDF file information for a RUE report."""
         url = self.api_url + f"rue/{rue_id}/pdf"
         params = {"includeDetails": str(include_details).lower()}
         response = requests.get(url, headers=self.headers, params=params)
         response.raise_for_status()
-        return response.json()
+        return FileInformation.model_validate(response.json())
