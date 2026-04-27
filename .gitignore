@@ -133,3 +133,5 @@ dmypy.json
 uv.lock
 
 .claude
+
+tmp/
