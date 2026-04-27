@@ -12,15 +12,6 @@ class RueStatus(StrEnum):
     DISCARDED = "Discarded"
 
 
-class Severity(StrEnum):
-    NONE = "None"
-    LOW = "Low"
-    MEDIUM_LOW = "MediumLow"
-    MEDIUM = "Medium"
-    MEDIUM_HIGH = "MediumHigh"
-    HIGH = "High"
-
-
 class AbsenceAppliesTo(StrEnum):
     NOT_RELEVANT = "NotRelevant"
     SUBCONTRACTOR = "Subcontractor"
@@ -79,7 +70,7 @@ class RueReportSummary(BaseModel):
     event_id: int = Field(alias="EventId", description="Hendelsesnummer")
     title: Optional[str] = Field(None, alias="Title", description="Tittel")
     status: RueStatus = Field(alias="Status", description="Status")
-    severity: Severity = Field(alias="Severity", description="Alvorlighetsgrad")
+    severity: str = Field(alias="Severity", description="Alvorlighetsgrad")
     submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
     event_time: datetime = Field(alias="EventTime", description="Hendelsestidspunkt")
     deadline_date_time: Optional[datetime] = Field(
@@ -134,7 +125,7 @@ class RueReportDetail(BaseModel):
         None, alias="Description", description="Beskrivelse"
     )
     status: RueStatus = Field(alias="Status", description="Status")
-    severity: Severity = Field(alias="Severity", description="Alvorlighetsgrad")
+    severity: str = Field(alias="Severity", description="Alvorlighetsgrad")
     submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
     event_time: datetime = Field(alias="EventTime", description="Hendelsestidspunkt")
     deadline_date_time: Optional[datetime] = Field(
