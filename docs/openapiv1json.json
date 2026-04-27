@@ -10273,6 +10273,43 @@
           }
         }
       }
+    },
+    "/Absence": {
+      "post": {
+        "tags": [
+          "WorkHours"
+        ],
+        "summary": "Register absence",
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenceInput"
+              }
+            },
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenceInput"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenceInput"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10285,6 +10322,84 @@
         ],
         "type": "string",
         "description": "Indicates who the reported absence applies to"
+      },
+      "AbsenceInput": {
+        "required": [
+          "Date",
+          "ProjectId",
+          "TimeFrom",
+          "TimeTo",
+          "UserId",
+          "WageId"
+        ],
+        "type": "object",
+        "properties": {
+          "UserId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Date": {
+            "type": "string",
+            "format": "date"
+          },
+          "TimeFrom": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "TimeTo": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "BreakTime": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "BreakStart": {
+            "type": "string",
+            "format": "date-span",
+            "nullable": true
+          },
+          "ProjectId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SubProjectId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "AreaId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ActivityId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ActivityCategoryId": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "WageId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "WageComment": {
+            "type": "string",
+            "nullable": true
+          },
+          "Comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "AdminComment": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "ActivityCategoryOutput": {
         "required": [
@@ -10434,8 +10549,14 @@
           },
           "HourlyCost": {
             "type": "number",
-            "description": "HourlyCost",
+            "description": "External Price of addition",
             "format": "double"
+          },
+          "InternalPrice": {
+            "type": "number",
+            "description": "Internal Price of addition",
+            "format": "double",
+            "nullable": true
           },
           "Order": {
             "type": "integer",
@@ -10498,8 +10619,14 @@
           },
           "HourlyCost": {
             "type": "number",
-            "description": "HourlyCost",
+            "description": "External Price of addition",
             "format": "double"
+          },
+          "InternalPrice": {
+            "type": "number",
+            "description": "Internal Price of addition",
+            "format": "double",
+            "nullable": true
           },
           "Order": {
             "type": "integer",
@@ -15424,6 +15551,7 @@
       },
       "RUEReportDetailOutput": {
         "required": [
+          "Severity",
           "Values"
         ],
         "type": "object",
@@ -15452,7 +15580,8 @@
             "$ref": "#/components/schemas/RUEStatus"
           },
           "Severity": {
-            "$ref": "#/components/schemas/Severity"
+            "type": "string",
+            "description": "Severity level of the incident (translated)"
           },
           "SubmitDate": {
             "type": "string",
@@ -15653,6 +15782,9 @@
         "additionalProperties": false
       },
       "RUEReportSummaryOutput": {
+        "required": [
+          "Severity"
+        ],
         "type": "object",
         "properties": {
           "Id": {
@@ -15674,7 +15806,8 @@
             "$ref": "#/components/schemas/RUEStatus"
           },
           "Severity": {
-            "$ref": "#/components/schemas/Severity"
+            "type": "string",
+            "description": "Severity level of the incident (translated)"
           },
           "SubmitDate": {
             "type": "string",
@@ -16135,17 +16268,6 @@
         "type": "integer",
         "description": "API error codes (PUT/POST).",
         "format": "int32"
-      },
-      "Severity": {
-        "enum": [
-          "None",
-          "Low",
-          "MediumLow",
-          "Medium",
-          "MediumHigh",
-          "High"
-        ],
-        "type": "string"
       },
       "SubProjectInput": {
         "required": [
