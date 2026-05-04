@@ -29,8 +29,6 @@ def main():
 
     print(f"Exported {len(reports)} reports to {OUTPUT_FILE}")
 
-    print(f"Exported {len(reports)} reports to {OUTPUT_DIR}/")
-
 
 if __name__ == "__main__":
     main()
