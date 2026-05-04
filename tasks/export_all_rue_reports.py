@@ -13,10 +13,9 @@ OUTPUT_FILE = OUTPUT_DIR / "rue_reports.json"
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     dotenv.load_dotenv()
     client = pysmartdok.ApiClient(api_token=os.getenv("SMARTDOK_API_KEY"))
-
-    logging.getLogger().setLevel(logging.DEBUG)
 
     reports = client.rue.get_rue_reports()
 
