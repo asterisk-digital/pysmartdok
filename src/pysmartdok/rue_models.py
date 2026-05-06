@@ -62,7 +62,7 @@ class RueValueGroup(BaseModel):
 
 
 class RueReportSummary(BaseModel):
-    """Sammendrag av en RUE-rapport."""
+    """Sammendrag av en RUE-rapport. Kilde: GET /rue/summaries."""
 
     model_config = {"populate_by_name": True}
 
@@ -86,35 +86,36 @@ class RueReportSummary(BaseModel):
     )
 
 
+# Deprecated: GET /rue endpoint was deprecated by SmartDok.
+# class RueReport(BaseModel):
+#     """Deprecated: Rapport fra GET /rue."""
+#
+#     model_config = {"populate_by_name": True}
+#
+#     id: int = Field(alias="Id", description="Unik rapport-ID")
+#     project_id: int = Field(alias="ProjectId", description="Prosjekt-ID")
+#     sub_project_id: Optional[int] = Field(
+#         None, alias="SubProjectId", description="Underprosjekt-ID"
+#     )
+#     submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
+#     submitter_name: Optional[str] = Field(
+#         None, alias="SubmitterName", description="Innmelders navn"
+#     )
+#     case_worker_name: Optional[str] = Field(
+#         None, alias="CaseWorkerName", description="Saksbehandlers navn"
+#     )
+#     status: RueStatus = Field(alias="Status", description="Status")
+#     title: Optional[str] = Field(None, alias="Title", description="Tittel")
+#     lat: Optional[float] = Field(None, alias="Lat", description="Breddegrad")
+#     lon: Optional[float] = Field(None, alias="Lon", description="Lengdegrad")
+#     accuracy: Optional[int] = Field(
+#         None, alias="Accuracy", description="GPS-nøyaktighet (meter)"
+#     )
+#     event_id: int = Field(alias="EventId", description="Hendelsesnummer")
+
+
 class RueReport(BaseModel):
-    """Deprecated: Rapport fra GET /rue."""
-
-    model_config = {"populate_by_name": True}
-
-    id: int = Field(alias="Id", description="Unik rapport-ID")
-    project_id: int = Field(alias="ProjectId", description="Prosjekt-ID")
-    sub_project_id: Optional[int] = Field(
-        None, alias="SubProjectId", description="Underprosjekt-ID"
-    )
-    submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
-    submitter_name: Optional[str] = Field(
-        None, alias="SubmitterName", description="Innmelders navn"
-    )
-    case_worker_name: Optional[str] = Field(
-        None, alias="CaseWorkerName", description="Saksbehandlers navn"
-    )
-    status: RueStatus = Field(alias="Status", description="Status")
-    title: Optional[str] = Field(None, alias="Title", description="Tittel")
-    lat: Optional[float] = Field(None, alias="Lat", description="Breddegrad")
-    lon: Optional[float] = Field(None, alias="Lon", description="Lengdegrad")
-    accuracy: Optional[int] = Field(
-        None, alias="Accuracy", description="GPS-nøyaktighet (meter)"
-    )
-    event_id: int = Field(alias="EventId", description="Hendelsesnummer")
-
-
-class RueReportDetail(BaseModel):
-    """Fullstendig RUE-rapport (Rapport om Uønskede Hendelser)."""
+    """Fullstendig RUE-rapport (Rapport om Uønskede Hendelser). Kilde: GET /rue/{id}."""
 
     model_config = {"populate_by_name": True}
 
@@ -191,7 +192,7 @@ class RueReportDetail(BaseModel):
 
 
 class RueEventLog(BaseModel):
-    """Hendelseslogg / endringslogg."""
+    """Hendelseslogg / endringslogg. Kilde: GET /rue/{id}/eventlog."""
 
     model_config = {"populate_by_name": True}
 
@@ -204,7 +205,7 @@ class RueEventLog(BaseModel):
 
 
 class RueMessage(BaseModel):
-    """Melding/kommentar på en RUE-rapport."""
+    """Melding/kommentar på en RUE-rapport. Kilde: GET /rue/{id}/messages."""
 
     model_config = {"populate_by_name": True}
 
@@ -215,7 +216,7 @@ class RueMessage(BaseModel):
 
 
 class FileInformation(BaseModel):
-    """Filinformasjon for PDF-nedlasting."""
+    """Filinformasjon for PDF-nedlasting. Kilde: GET /rue/{id}/pdf."""
 
     model_config = {"populate_by_name": True}
 

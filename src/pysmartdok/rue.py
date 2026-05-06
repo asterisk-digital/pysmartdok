@@ -1,5 +1,4 @@
 import logging
-import warnings
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
@@ -11,7 +10,6 @@ from .rue_models import (
     RueEventLog,
     RueMessage,
     RueReport,
-    RueReportDetail,
     RueReportSummary,
 )
 
@@ -22,47 +20,6 @@ class Rue:
     def __init__(self, api_url: str, headers: dict):
         self.api_url = api_url
         self.headers = headers
-
-    def get_rue(
-        self,
-        last_updated_since: Optional[str] = None,
-        project_id: Optional[int] = None,
-        subproject_id: Optional[int] = None,
-        rue_status: Optional[str] = None,
-    ) -> list[RueReport]:
-        """Get RUE reports. DEPRECATED: Use get_rue_summaries() instead."""
-        warnings.warn(
-            "get_rue() is deprecated. The GET /rue endpoint has been deprecated by SmartDok. "
-            "Use get_rue_summaries() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        logger.warning(
-            "GET /rue is deprecated by SmartDok. Use get_rue_summaries() instead."
-        )
-        url = self.api_url + "rue"
-        params = {}
-        if last_updated_since is not None:
-            params["lastUpdatedSince"] = last_updated_since
-        if project_id is not None:
-            params["projectId"] = project_id
-        if subproject_id is not None:
-            params["subprojectId"] = subproject_id
-        if rue_status is not None:
-            params["rueStatus"] = rue_status
-
-        logger.debug("GET %s params=%s", url, params)
-        response = requests.get(url, headers=self.headers, params=params)
-        response.raise_for_status()
-
-        if "Items" not in response.json():
-            raise SmartDokApiError(
-                "Failed to get RUE data from SmartDok API. Items not found in response."
-                + " Response body: "
-                + response.text
-            )
-
-        return [RueReport.model_validate(item) for item in response.json()["Items"]]
 
     def get_rue_summaries(
         self,
@@ -112,13 +69,13 @@ class Rue:
         logger.info("Fetched %d RUE summaries", len(all_items))
         return all_items
 
-    def get_rue_report(self, rue_id: int) -> RueReportDetail:
+    def get_rue_report(self, rue_id: int) -> RueReport:
         """Get a single RUE report with full detail."""
         url = self.api_url + f"rue/{rue_id}"
         logger.debug("GET %s", url)
         response = requests.get(url, headers=self.headers)
         response.raise_for_status()
-        return RueReportDetail.model_validate(response.json())
+        return RueReport.model_validate(response.json())
 
     def get_rue_eventlog(self, rue_id: int) -> list[RueEventLog]:
         """Get the event log (audit trail) for a RUE report."""
@@ -170,7 +127,7 @@ class Rue:
         project_id: Optional[int] = None,
         subproject_id: Optional[int] = None,
         rue_status: Optional[str] = None,
-    ) -> list[RueReportDetail]:
+    ) -> list[RueReport]:
         """Get full RUE report details for all matching summaries.
 
         Fetches summaries first, then fans out to GET /rue/{id} concurrently.
