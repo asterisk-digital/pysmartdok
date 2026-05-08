@@ -101,6 +101,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Local-only API spec snapshots (download from https://api.smartdok.no/api-docs/)
+docs/
+
 # Environments
 .env*
 .venv

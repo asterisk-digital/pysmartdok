@@ -22,7 +22,7 @@ CI runs the same three commands on Python 3.11, 3.12, and 3.13.
 
 When adding a new SmartDok endpoint:
 
-1. Check `docs/docsv1.json` for the schema and add a Pydantic model in `rue_models.py` (or a new module if it's not RUE-related). Use Norwegian field descriptions matching the SmartDok web UI.
+1. Check the SmartDok OpenAPI spec for the schema. The spec is published at <https://api.smartdok.no/api-docs/> — download `swagger.json` (or the equivalent OpenAPI URL) into `docs/` (gitignored) for local reference. Add a Pydantic model in `rue_models.py` (or a new module if it's not RUE-related). Use Norwegian field descriptions matching the SmartDok web UI.
 2. Add the method to the relevant subclient (`Rue`, `Users`, or `ApiClient` directly for top-level endpoints).
 3. Add a mocked test in `tests/test_basic.py` using `responses`.
 4. Update `README.md` and `CHANGELOG.md`.
