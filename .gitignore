@@ -22,9 +22,6 @@ htmlcov/
 .venv/
 venv/
 
-# Local-only API spec snapshots (download from https://api.smartdok.no/docs/v1)
-docs/
-
 # Secrets — never commit
 .env
 .env.*
