@@ -19,7 +19,10 @@ Source lives in `src/pysmartdok/`. Tests are in `tests/`. Author smoke-test scri
 
 - Run `uv run ruff check .` and `uv run ruff format .` before finishing work. Fix any errors.
 - Keep this file and README.md up to date when adding commands, public API methods, or conventions.
-- All API changes must conform to the current SmartDok OpenAPI spec (https://api.smartdok.no/docs/v1).
+- All API changes must conform to the SmartDok OpenAPI spec, vendored at `docs/swagger.json`. Read it directly when implementing or modifying endpoints. If it's stale, refresh it (this exact command is pre-approved in `.claude/settings.json`) and commit the diff:
+  ```bash
+  curl https://api.smartdok.no/docs/v1 -o docs/swagger.json
+  ```
 
 ## Secrets
 

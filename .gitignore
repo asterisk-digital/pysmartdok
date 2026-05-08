@@ -32,5 +32,3 @@ venv/
 # uv lock (this is a library; downstream projects pin via their own lock)
 uv.lock
 
-# Claude Code local state
-.claude/
