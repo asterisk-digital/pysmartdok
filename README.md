@@ -80,7 +80,7 @@ uv run python scripts/get_rue_summaries.py
 
 ### Change conventions
 
-- All changes must conform to the current SmartDok OpenAPI spec at <https://api.smartdok.no/api-docs/>. Download `swagger.json` (or equivalent) into `docs/` (gitignored) for local reference.
+- All changes must conform to the current SmartDok OpenAPI spec at <https://api.smartdok.no/docs/v1>. Save it into `docs/` (gitignored) for local reference.
 - New endpoints: add a Pydantic model in `rue_models.py` (or a new module) with Norwegian field descriptions matching the SmartDok web UI; add the method to the relevant subclient (`Rue`, `Users`, or `ApiClient`); add a mocked test in `tests/test_basic.py`.
 - Public methods get short docstrings; field descriptions live on the Pydantic model.
 - Runtime deps go in `[project.dependencies]` with `>=` bounds; dev deps go in `[dependency-groups.dev]` with exact pins.
