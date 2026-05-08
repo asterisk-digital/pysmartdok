@@ -1,4 +1,3 @@
-import logging
 from multiprocessing import Pool, cpu_count
 
 import requests
@@ -10,21 +9,19 @@ from . import pysmartdok_utils
 class WebClient:
     def __init__(
         self,
-        username: str = None,
-        password: str = None,
-        user_agent: str = "intrix-pysmartdok(post@intrix.no)",
+        username: str,
+        password: str,
+        user_agent: str = "pysmartdok",
     ):
         """
         initializes an instance of the `pysmartdok` class.
 
         args:
-            username (str, required): the username for SmartDok login. defaults to None.
-            password (str, required): the password for SmartDok login. defaults to None.
-            user_agent (str, optional): the user agent to be used for the HTTP requests. defaults to 'intrix-pysmartdok(post@intrix.no)'.
+            username (str, required): the username for SmartDok login.
+            password (str, required): the password for SmartDok login.
+            user_agent (str, optional): the user agent to be used for the HTTP requests.
+                Recommended format includes contact info, e.g. "myapp(you@example.com)".
         """
-        logging.basicConfig(
-            level=logging.DEBUG, format="[%(levelname)s] - %(asctime)s - %(message)s"
-        )
         pysmartdok_utils.verify_init_params(username, password, user_agent)
 
         # we use this user agent because SmartDok blocks the default Python user agent.
