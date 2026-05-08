@@ -72,10 +72,10 @@ uv run ruff format .
 uv run pytest tests/
 ```
 
-Tests use `responses` to mock the SmartDok API; no token is needed. To smoke-test against the real API, drop a `.env` at the repo root with `SMARTDOK_API_KEY=...` and run one of the scripts in `tasks/`:
+Tests use `responses` to mock the SmartDok API; no token is needed. To smoke-test against the real API, drop a `.env` at the repo root with `SMARTDOK_API_KEY=...` and run one of the scripts in `scripts/`:
 
 ```bash
-uv run python tasks/get_rue_summaries.py
+uv run python scripts/get_rue_summaries.py
 ```
 
 ### Change conventions
