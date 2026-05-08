@@ -4,7 +4,21 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from .common_models import RegistrationStatus
+from .common_models import FileInformation, GeoLocation, RegistrationStatus
+
+__all__ = [
+    "AbsenceAppliesTo",
+    "FileInformation",
+    "GeoLocation",
+    "RegistrationStatus",
+    "RueEventLog",
+    "RueMessage",
+    "RueReport",
+    "RueReportSummary",
+    "RueValue",
+    "RueValueGroup",
+    "RueValueType",
+]
 
 
 class AbsenceAppliesTo(StrEnum):
@@ -25,13 +39,6 @@ class RueValueType(StrEnum):
     SUBMIT_ANONYMOUSLY = "SubmitAnonymously"
     PHOTOS = "Photos"
     TITLE = "Title"
-
-
-class GeoLocation(BaseModel):
-    model_config = {"populate_by_name": True}
-
-    lat: Optional[float] = Field(None, alias="Lat", description="Breddegrad")
-    lon: Optional[float] = Field(None, alias="Lon", description="Lengdegrad")
 
 
 class RueValue(BaseModel):
@@ -208,14 +215,3 @@ class RueMessage(BaseModel):
     message: Optional[str] = Field(None, alias="Message", description="Meldingsinnhold")
     submitter_id: str = Field(alias="SubmitterId", description="Forfatter-ID")
     timestamp: datetime = Field(alias="TimeStamp", description="Tidspunkt")
-
-
-class FileInformation(BaseModel):
-    """Filinformasjon for PDF-nedlasting. Kilde: GET /rue/{id}/pdf."""
-
-    model_config = {"populate_by_name": True}
-
-    filename: str = Field(alias="Filename", description="Filnavn")
-    download_url: str = Field(alias="DownloadUrl", description="Nedlastingslenke")
-    file_size: Optional[int] = Field(None, alias="FileSize", description="Filstørrelse")
-    file_date: Optional[datetime] = Field(None, alias="FileDate", description="Fildato")

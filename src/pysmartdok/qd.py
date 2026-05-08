@@ -3,8 +3,8 @@ from typing import Optional
 
 import requests
 
+from .common_models import FileInformation
 from .qd_models import QDReport
-from .rue_models import FileInformation
 
 logger = logging.getLogger(__name__)
 

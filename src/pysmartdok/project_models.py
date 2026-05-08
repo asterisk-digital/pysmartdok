@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from .rue_models import GeoLocation
+from .common_models import GeoLocation
 
 
 class ProjectMin(BaseModel):
