@@ -58,27 +58,30 @@ license_info = client.users.get_license_info()
 
 ## Development
 
-### Setup
+Set up the environment with [uv](https://docs.astral.sh/uv/getting-started/installation/):
 
-To set up the python environment you need [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
-```(bash)
+```bash
 uv sync
 ```
 
-### Run linter
+Before pushing, run lint, format, and tests — CI runs the same on Python 3.11/3.12/3.13:
 
-```(bash)
+```bash
 uv run ruff check .
-```
-
-### Run tests
-
-```(bash)
-uv run tox
-```
-
-### Run formatter
-
-```(bash)
 uv run ruff format .
+uv run pytest tests/
 ```
+
+Tests use `responses` to mock the SmartDok API; no token is needed. To smoke-test against the real API, drop a `.env` at the repo root with `SMARTDOK_API_KEY=...` and run one of the scripts in `tasks/`:
+
+```bash
+uv run python tasks/get_rue_summaries.py
+```
+
+### Change conventions
+
+- All changes must conform to the current SmartDok OpenAPI spec at <https://api.smartdok.no/api-docs/>. Download `swagger.json` (or equivalent) into `docs/` (gitignored) for local reference.
+- New endpoints: add a Pydantic model in `rue_models.py` (or a new module) with Norwegian field descriptions matching the SmartDok web UI; add the method to the relevant subclient (`Rue`, `Users`, or `ApiClient`); add a mocked test in `tests/test_basic.py`.
+- Public methods get short docstrings; field descriptions live on the Pydantic model.
+- Runtime deps go in `[project.dependencies]` with `>=` bounds; dev deps go in `[dependency-groups.dev]` with exact pins.
+- Update `README.md` and `CHANGELOG.md` for any user-visible change.
