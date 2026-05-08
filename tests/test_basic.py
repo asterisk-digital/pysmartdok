@@ -2,10 +2,11 @@ import pytest
 import responses
 
 import pysmartdok
+from pysmartdok.common_models import RegistrationStatus
 from pysmartdok.project_models import Project, SubProject
 from pysmartdok.projects import Projects
 from pysmartdok.qd import Qd
-from pysmartdok.qd_models import QDReport, QDStatus
+from pysmartdok.qd_models import QDReport
 from pysmartdok.rue import Rue
 from pysmartdok.rue_models import (
     FileInformation,
@@ -13,7 +14,6 @@ from pysmartdok.rue_models import (
     RueMessage,
     RueReport,
     RueReportSummary,
-    RueStatus,
 )
 from pysmartdok.users import Users
 
@@ -102,7 +102,7 @@ def test_get_rue_summaries_paginates():
     assert all(isinstance(r, RueReportSummary) for r in result)
     assert result[0].id == 0
     assert result[-1].id == 149
-    assert result[0].status is RueStatus.OPEN
+    assert result[0].status is RegistrationStatus.OPEN
 
 
 @responses.activate
@@ -289,7 +289,7 @@ def test_get_qd_reports_passes_filters_and_parses():
     result = qd.get_qd_reports(project_id=5, qd_status="Open")
     assert len(result) == 1
     assert isinstance(result[0], QDReport)
-    assert result[0].status is QDStatus.OPEN
+    assert result[0].status is RegistrationStatus.OPEN
     assert "projectId=5" in responses.calls[0].request.url
     assert "qdStatus=Open" in responses.calls[0].request.url
 

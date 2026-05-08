@@ -1,15 +1,9 @@
 from datetime import datetime
-from enum import StrEnum
 from typing import Optional
 
 from pydantic import BaseModel, Field
 
-
-class QDStatus(StrEnum):
-    UNPROCESSED = "Unprocessed"
-    OPEN = "Open"
-    CLOSE = "Close"
-    DISCARDED = "Discarded"
+from .common_models import RegistrationStatus
 
 
 class QDReport(BaseModel):
@@ -18,7 +12,7 @@ class QDReport(BaseModel):
     model_config = {"populate_by_name": True}
 
     id: int = Field(alias="Id", description="Unik rapport-ID")
-    status: QDStatus = Field(alias="Status", description="Status")
+    status: RegistrationStatus = Field(alias="Status", description="Status")
     submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
     title: Optional[str] = Field(None, alias="Title", description="Tittel")
     description: Optional[str] = Field(

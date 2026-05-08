@@ -4,12 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-
-class RueStatus(StrEnum):
-    UNPROCESSED = "Unprocessed"
-    OPEN = "Open"
-    CLOSE = "Close"
-    DISCARDED = "Discarded"
+from .common_models import RegistrationStatus
 
 
 class AbsenceAppliesTo(StrEnum):
@@ -69,7 +64,7 @@ class RueReportSummary(BaseModel):
     id: int = Field(alias="Id", description="Unik rapport-ID")
     event_id: int = Field(alias="EventId", description="Hendelsesnummer")
     title: Optional[str] = Field(None, alias="Title", description="Tittel")
-    status: RueStatus = Field(alias="Status", description="Status")
+    status: RegistrationStatus = Field(alias="Status", description="Status")
     severity: str = Field(alias="Severity", description="Alvorlighetsgrad")
     submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
     event_time: datetime = Field(alias="EventTime", description="Hendelsestidspunkt")
@@ -104,7 +99,7 @@ class RueReportSummary(BaseModel):
 #     case_worker_name: Optional[str] = Field(
 #         None, alias="CaseWorkerName", description="Saksbehandlers navn"
 #     )
-#     status: RueStatus = Field(alias="Status", description="Status")
+#     status: RegistrationStatus = Field(alias="Status", description="Status")
 #     title: Optional[str] = Field(None, alias="Title", description="Tittel")
 #     lat: Optional[float] = Field(None, alias="Lat", description="Breddegrad")
 #     lon: Optional[float] = Field(None, alias="Lon", description="Lengdegrad")
@@ -125,7 +120,7 @@ class RueReport(BaseModel):
     description: Optional[str] = Field(
         None, alias="Description", description="Beskrivelse"
     )
-    status: RueStatus = Field(alias="Status", description="Status")
+    status: RegistrationStatus = Field(alias="Status", description="Status")
     severity: str = Field(alias="Severity", description="Alvorlighetsgrad")
     submit_date: datetime = Field(alias="SubmitDate", description="Innsendt dato")
     event_time: datetime = Field(alias="EventTime", description="Hendelsestidspunkt")
