@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RegistrationStatus` enum (in `pysmartdok.common_models`) — single source of truth for the SmartDok status enum used by both QD and RUE responses.
 - `client.projects` namespace: `get_projects`, `get_project`, `get_subprojects`, `get_next_project_number`. Pydantic models `Project`, `SubProject`, `ProjectMin`.
 - `py.typed` marker — type hints are now visible to downstream type checkers.
-- GitHub Actions CI: ruff (check + format) and pytest on Python 3.11/3.12/3.13.
+- GitHub Actions CI: ruff (check + format) and pytest on the supported Python versions.
 - Mocked HTTP test suite covering auth, pagination, model parsing, threading, and Users endpoints.
 
 ### Changed
@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `client.get_qd()` and `client.get_projects()` (returning raw `dict`/`list[dict]`) replaced by typed methods on `client.qd` and `client.projects` namespaces.
 
 ### Removed
+- Python 3.11 and 3.12 support. Minimum is now 3.13; CI also runs on 3.14. The dropped versions still get upstream security patches per PEP 602, but this project keeps a tighter support window.
 - `WebClient` (web-scraping login flow) and its `pysmartdok_utils` helpers.
 - `beautifulsoup4` runtime dependency (only `WebClient` used it).
 - Deprecated `client.rue.get_rue()` (the underlying `GET /rue` endpoint was removed by SmartDok; use `get_rue_summaries` / `get_rue_reports`).
