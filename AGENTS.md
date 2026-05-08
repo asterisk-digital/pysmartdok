@@ -13,7 +13,7 @@ Source lives in `src/pysmartdok/`. Tests are in `tests/`. Author smoke-test scri
 - **Sync deps:** `uv sync`
 - **Lint:** `uv run ruff check .`
 - **Format:** `uv run ruff format .`
-- **Test:** `uv run pytest tests/`
+- **Test:** `uv run tox`
 
 ## Rules
 

@@ -36,3 +36,14 @@ include = ["pysmartdok*"]
 
 [tool.setuptools.package-data]
 pysmartdok = ["py.typed"]
+
+[tool.tox]
+requires = ["tox>=4.21"]
+env_list = ["py311", "py312", "py313"]
+
+[tool.tox.env_run_base]
+description = "Run tests with pytest"
+package = "editable"
+set_env = { PYTHONPATH = "{tox_root}/src" }
+allowlist_externals = ["pytest"]
+commands = [["pytest"]]

@@ -69,7 +69,7 @@ Before pushing, run lint, format, and tests — CI runs the same on Python 3.11/
 ```bash
 uv run ruff check .
 uv run ruff format .
-uv run pytest tests/
+uv run tox
 ```
 
 Tests use `responses` to mock the SmartDok API; no token is needed. To smoke-test against the real API, drop a `.env` at the repo root with `SMARTDOK_API_KEY=...` and run one of the scripts in `scripts/`:
