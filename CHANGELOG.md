@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `client.rue.get_rue_reports(threads=8)` — fetches summaries then fans out to `GET /rue/{id}` concurrently.
 - `client.rue.get_rue_report`, `get_rue_eventlog`, `get_rue_messages`, `get_rue_pdf`.
 - `client.users` namespace: `get_users`, `get_user`, `get_current_user`, `get_license_info`.
+- `client.qd` namespace: `get_qd_reports` (GET `/qd/v2`), `get_qd_pdf`. Pydantic models `QDReport`, `QDStatus`.
+- `client.projects` namespace: `get_projects`, `get_project`, `get_subprojects`, `get_next_project_number`. Pydantic models `Project`, `SubProject`, `ProjectMin`.
 - `py.typed` marker — type hints are now visible to downstream type checkers.
 - GitHub Actions CI: ruff (check + format) and pytest on Python 3.11/3.12/3.13.
 - Mocked HTTP test suite covering auth, pagination, model parsing, threading, and Users endpoints.
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `RueReportDetail` renamed to `RueReport`.
 - Runtime dependencies loosened from exact pins to compatible ranges (`requests>=2.28`, `pydantic>=2.0,<3`).
+- `client.get_qd()` and `client.get_projects()` (returning raw `dict`/`list[dict]`) replaced by typed methods on `client.qd` and `client.projects` namespaces.
 
 ### Removed
 - `WebClient` (web-scraping login flow) and its `pysmartdok_utils` helpers.

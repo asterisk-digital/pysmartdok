@@ -22,10 +22,17 @@ client = pysmartdok.ApiClient(
 )
 
 # Quality Deviations
-qd_items = client.get_qd()
+qd_reports = client.qd.get_qd_reports(
+    project_id=123,        # optional
+    qd_status="Open",      # optional: Open, Close, Unprocessed, Discarded
+)
+qd_pdf = client.qd.get_qd_pdf(qd_id=789, include_details=True)
 
 # Projects
-projects = client.get_projects()
+projects = client.projects.get_projects(include_inactive=False, include_orders=False)
+project = client.projects.get_project(project_id=123)
+subprojects = client.projects.get_subprojects(project_id=123)
+next_number = client.projects.get_next_project_number()
 
 # RUE summaries (paginates internally, returns all matching reports)
 summaries = client.rue.get_rue_summaries(
