@@ -33,3 +33,6 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["pysmartdok*"]
+
+[tool.setuptools.package-data]
+pysmartdok = ["py.typed"]

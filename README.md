@@ -60,9 +60,9 @@ license_info = client.users.get_license_info()
 
 ### Setup
 
-To set up the python environment you need `uv`, then run:
+To set up the python environment you need [uv](https://docs.astral.sh/uv/getting-started/installation/), then run:
 ```(bash)
-uv sync --group dev
+uv sync
 ```
 
 ### Run linter
