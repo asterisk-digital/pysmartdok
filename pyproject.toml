@@ -1,6 +1,6 @@
 [project]
 name = "pysmartdok"
-version = "0.1.0"
+version = "0.1.0a1"
 description = "Typed Python client for the SmartDok REST API (RUE incidents, quality deviations, projects, users)"
 authors = [{ name = "David Skoland", email = "david.skoland@asterisk.digital" }]
 requires-python = ">=3.13"
