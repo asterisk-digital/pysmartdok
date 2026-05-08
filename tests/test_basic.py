@@ -19,7 +19,23 @@ def test_api_client_authenticate_success():
         status=200,
     )
     client = pysmartdok.ApiClient(api_token="real-token")
-    assert client.headers == {"Authorization": "Bearer session-token-abc"}
+    assert client.headers == {
+        "Authorization": "Bearer session-token-abc",
+        "User-Agent": "pysmartdok",
+    }
+
+
+@responses.activate
+def test_api_client_custom_user_agent():
+    responses.add(
+        responses.POST,
+        API_URL + "Authorize/ApiToken",
+        body='"tok"',
+        status=200,
+    )
+    client = pysmartdok.ApiClient(api_token="t", user_agent="myapp(you@example.com)")
+    assert client.headers["User-Agent"] == "myapp(you@example.com)"
+    assert responses.calls[0].request.headers["User-Agent"] == "myapp(you@example.com)"
 
 
 @responses.activate

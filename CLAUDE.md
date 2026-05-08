@@ -2,10 +2,7 @@
 
 ## Project overview
 
-pysmartdok is a Python client library for the SmartDok API (https://api.smartdok.no). It provides two clients:
-
-- **ApiClient** — REST API client using an API token. Covers quality deviations (QD), RUE reports (Rapport om Uønsket Hendelse), and projects.
-- **WebClient** — Web scraping client using username/password. Fetches QD and RUE records via the SmartDok web interface.
+pysmartdok is a Python client library for the SmartDok REST API (https://api.smartdok.no). It exposes an `ApiClient` (authenticated via API token) covering quality deviations (QD), RUE reports (Rapport om Uønsket Hendelse), users, and projects.
 
 Source code lives in `src/pysmartdok/`. Tests are in `tests/`.
 

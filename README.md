@@ -11,14 +11,15 @@ To use in a project, add this to dependencies in `pyproject.toml`:
 
 ## Usage
 
-### ApiClient
-
 Uses the SmartDok REST API. Requires an API token.
 
 ```python
 import pysmartdok
 
-client = pysmartdok.ApiClient(api_token="your_api_token")
+client = pysmartdok.ApiClient(
+    api_token="your_api_token",
+    user_agent="myapp(you@example.com)",  # optional, defaults to "pysmartdok"
+)
 
 # Quality Deviations
 qd_items = client.get_qd()
@@ -53,22 +54,6 @@ users = client.users.get_users(include_inactive=False)
 me = client.users.get_current_user()
 user = client.users.get_user(user_id="...")
 license_info = client.users.get_license_info()
-```
-
-### WebClient
-
-Uses web scraping via the SmartDok web interface. Requires username and password.
-
-```python
-import pysmartdok
-
-client = pysmartdok.WebClient(username="your_username", password="your_password")
-
-# Get all records of a type ('qd' or 'rue'), optionally filtered by date
-records = client.get_all_records(record_type="qd", days_back=30)
-
-# Get a single record by ID
-record = client.get_single_record(record_id="12345", record_type="qd")
 ```
 
 ## Development
