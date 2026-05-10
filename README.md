@@ -71,7 +71,7 @@ Set up the environment with [uv](https://docs.astral.sh/uv/getting-started/insta
 uv sync
 ```
 
-Before pushing, run lint, format, and tests — CI runs the same on Python 3.13 and 3.14:
+Before pushing, run lint, format, and tests — CI runs the same on Python 3.11, 3.12, 3.13, and 3.14:
 
 ```bash
 uv run ruff check .

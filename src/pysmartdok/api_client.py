@@ -3,7 +3,6 @@ import logging
 import threading
 
 import requests
-from requests import session
 
 from .exceptions import SmartDokApiError
 from .projects import Projects

@@ -3,7 +3,7 @@ name = "pysmartdok"
 dynamic = ["version"]
 description = "Typed Python client for the SmartDok REST API (RUE incidents, quality deviations, projects, users)"
 authors = [{ name = "David Skoland", email = "david.skoland@asterisk.digital" }]
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -16,6 +16,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -65,7 +67,7 @@ pysmartdok = ["py.typed"]
 
 [tool.tox]
 requires = ["tox>=4.21"]
-env_list = ["py313", "py314"]
+env_list = ["py311", "py312", "py313", "py314"]
 
 [tool.tox.env_run_base]
 description = "Run tests with pytest"

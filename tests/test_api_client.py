@@ -11,7 +11,7 @@ def test_authenticate_success():
     responses.add(
         responses.POST,
         API_URL + "Authorize/ApiToken",
-        body='"session-token-abc"',
+        body="session-token-abc",
         status=200,
     )
     client = pysmartdok.ApiClient(api_token="real-token")
@@ -26,7 +26,7 @@ def test_custom_user_agent():
     responses.add(
         responses.POST,
         API_URL + "Authorize/ApiToken",
-        body='"tok"',
+        body="tok",
         status=200,
     )
     client = pysmartdok.ApiClient(api_token="t", user_agent="myapp(you@example.com)")
@@ -56,14 +56,14 @@ def test_reauth_on_401_then_retry():
     responses.add(
         responses.POST,
         API_URL + "Authorize/ApiToken",
-        body='"first-token"',
+        body="first-token",
         status=200,
     )
     responses.add(responses.GET, API_URL + "Users/current", status=401)
     responses.add(
         responses.POST,
         API_URL + "Authorize/ApiToken",
-        body='"second-token"',
+        body="second-token",
         status=200,
     )
     responses.add(
@@ -88,14 +88,14 @@ def test_no_retry_when_401_persists():
     responses.add(
         responses.POST,
         API_URL + "Authorize/ApiToken",
-        body='"first-token"',
+        body="first-token",
         status=200,
     )
     responses.add(responses.GET, API_URL + "Users/current", status=401)
     responses.add(
         responses.POST,
         API_URL + "Authorize/ApiToken",
-        body='"second-token"',
+        body="second-token",
         status=200,
     )
     responses.add(responses.GET, API_URL + "Users/current", status=401)
