@@ -63,7 +63,6 @@ class ApiClient:
                 )
 
             # The session token contains quotes for some reason, we need to remove them for it to be valid
-            # session_token = response.text.replace('"', "")
-            session_token = response.text
+            session_token = response.text.replace('"', "")
             self.headers["Authorization"] = "Bearer " + session_token
             self.headers["User-Agent"] = self.user_agent
