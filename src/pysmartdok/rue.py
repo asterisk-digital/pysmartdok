@@ -2,8 +2,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
-import requests
-
+from ._http import _HttpClient
 from .exceptions import SmartDokApiError
 from .rue_models import (
     FileInformation,
@@ -16,11 +15,7 @@ from .rue_models import (
 logger = logging.getLogger(__name__)
 
 
-class Rue:
-    def __init__(self, api_url: str, headers: dict):
-        self.api_url = api_url
-        self.headers = headers
-
+class Rue(_HttpClient):
     def get_rue_summaries(
         self,
         last_updated_since: Optional[str] = None,
@@ -44,7 +39,7 @@ class Rue:
                 params["RueStatus"] = rue_status
 
             logger.debug("GET %s params=%s", url, params)
-            response = requests.get(url, headers=self.headers, params=params)
+            response = self._request("GET", url, params=params)
             response.raise_for_status()
 
             data = response.json()
@@ -73,7 +68,7 @@ class Rue:
         """Get a single RUE report with full detail."""
         url = self.api_url + f"rue/{rue_id}"
         logger.debug("GET %s", url)
-        response = requests.get(url, headers=self.headers)
+        response = self._request("GET", url)
         response.raise_for_status()
         return RueReport.model_validate(response.json())
 
@@ -81,7 +76,7 @@ class Rue:
         """Get the event log (audit trail) for a RUE report."""
         url = self.api_url + f"rue/{rue_id}/eventlog"
         logger.debug("GET %s", url)
-        response = requests.get(url, headers=self.headers)
+        response = self._request("GET", url)
         response.raise_for_status()
 
         data = response.json()
@@ -97,7 +92,7 @@ class Rue:
         """Get messages/comments for a RUE report."""
         url = self.api_url + f"rue/{rue_id}/messages"
         logger.debug("GET %s", url)
-        response = requests.get(url, headers=self.headers)
+        response = self._request("GET", url)
         response.raise_for_status()
 
         data = response.json()
@@ -116,7 +111,7 @@ class Rue:
         url = self.api_url + f"rue/{rue_id}/pdf"
         params = {"includeDetails": str(include_details).lower()}
         logger.debug("GET %s params=%s", url, params)
-        response = requests.get(url, headers=self.headers, params=params)
+        response = self._request("GET", url, params=params)
         response.raise_for_status()
         return FileInformation.model_validate(response.json())
 

@@ -1,19 +1,14 @@
 import logging
 from typing import Optional
 
-import requests
-
+from ._http import _HttpClient
 from .exceptions import SmartDokApiError
 from .project_models import Project, SubProject
 
 logger = logging.getLogger(__name__)
 
 
-class Projects:
-    def __init__(self, api_url: str, headers: dict):
-        self.api_url = api_url
-        self.headers = headers
-
+class Projects(_HttpClient):
     def get_projects(
         self,
         project_number: Optional[str] = None,
@@ -39,7 +34,7 @@ class Projects:
             params["createdSince"] = created_since
 
         logger.debug("GET %s params=%s", url, params)
-        response = requests.get(url, headers=self.headers, params=params)
+        response = self._request("GET", url, params=params)
         response.raise_for_status()
 
         data = response.json()
@@ -57,7 +52,7 @@ class Projects:
         """Get a single project by ID."""
         url = self.api_url + f"Projects/{project_id}"
         logger.debug("GET %s", url)
-        response = requests.get(url, headers=self.headers)
+        response = self._request("GET", url)
         response.raise_for_status()
         return Project.model_validate(response.json())
 
@@ -80,7 +75,7 @@ class Projects:
             params["updatedSince"] = updated_since
 
         logger.debug("GET %s params=%s", url, params)
-        response = requests.get(url, headers=self.headers, params=params)
+        response = self._request("GET", url, params=params)
         response.raise_for_status()
 
         data = response.json()
@@ -96,6 +91,6 @@ class Projects:
         """Get next available project number."""
         url = self.api_url + "Projects/NextProjectNumber"
         logger.debug("GET %s", url)
-        response = requests.get(url, headers=self.headers)
+        response = self._request("GET", url)
         response.raise_for_status()
         return response.json()

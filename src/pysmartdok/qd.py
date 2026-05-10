@@ -1,19 +1,14 @@
 import logging
 from typing import Optional
 
-import requests
-
+from ._http import _HttpClient
 from .common_models import FileInformation
 from .qd_models import QDReport
 
 logger = logging.getLogger(__name__)
 
 
-class Qd:
-    def __init__(self, api_url: str, headers: dict):
-        self.api_url = api_url
-        self.headers = headers
-
+class Qd(_HttpClient):
     def get_qd_reports(
         self,
         last_updated_since: Optional[str] = None,
@@ -34,7 +29,7 @@ class Qd:
             params["qdStatus"] = qd_status
 
         logger.debug("GET %s params=%s", url, params)
-        response = requests.get(url, headers=self.headers, params=params)
+        response = self._request("GET", url, params=params)
         response.raise_for_status()
 
         items = response.json()
@@ -46,6 +41,6 @@ class Qd:
         url = self.api_url + f"qd/{qd_id}/pdf"
         params = {"includeDetails": str(include_details).lower()}
         logger.debug("GET %s params=%s", url, params)
-        response = requests.get(url, headers=self.headers, params=params)
+        response = self._request("GET", url, params=params)
         response.raise_for_status()
         return FileInformation.model_validate(response.json())
