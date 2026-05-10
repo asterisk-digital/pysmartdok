@@ -1,6 +1,6 @@
 [project]
 name = "pysmartdok"
-version = "0.1.0a1"
+dynamic = ["version"]
 description = "Typed Python client for the SmartDok REST API (RUE incidents, quality deviations, projects, users)"
 authors = [{ name = "David Skoland", email = "david.skoland@asterisk.digital" }]
 requires-python = ">=3.13"
@@ -44,8 +44,14 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools>=75", "wheel"]
+requires = ["setuptools>=75", "wheel", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+# Version comes from git tags. The `-test` suffix on tags routes the
+# release workflow to TestPyPI but is stripped from the published version,
+# so e.g. tag v0.1.0a2-test -> published version 0.1.0a2.
+tag_regex = "^v(?P<version>[^-]+)(?:-test)?$"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
