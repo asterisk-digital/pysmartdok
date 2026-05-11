@@ -30,11 +30,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Runtime dependencies loosened from exact pins to compatible ranges (`requests>=2.28`, `pydantic>=2.0,<3`).
 - `client.get_qd()` and `client.get_projects()` (returning raw `dict`/`list[dict]`) replaced by typed methods on `client.qd` and `client.projects` namespaces.
 
-### Removed
-- `WebClient` (web-scraping login flow) and its `pysmartdok_utils` helpers.
-- `beautifulsoup4` runtime dependency (only `WebClient` used it).
-- Deprecated `client.rue.get_rue()` (the underlying `GET /rue` endpoint was removed by SmartDok; use `get_rue_summaries` / `get_rue_reports`).
-- Deprecated `client.users.get_roles()` (the underlying `GET /Roles` endpoint was deprecated; use the `Role` field on user objects).
-
 [Unreleased]: https://github.com/asterisk-digital/pysmartdok/compare/v0.1.0a2...HEAD
 [0.1.0a2]: https://github.com/asterisk-digital/pysmartdok/releases/tag/v0.1.0a2
