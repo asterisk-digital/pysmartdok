@@ -3,10 +3,9 @@
 A Python library for the [SmartDok API](https://api.smartdok.no/api-docs/).
 
 ## Installation
-To use in a project, add this to dependencies in `pyproject.toml`:
 
-```
-"pysmartdok @ git+https://github.com/asterisk-digital/pysmartdok.git@main"
+```bash
+pip install "pysmartdok>=0.2.0"
 ```
 
 ## Usage
