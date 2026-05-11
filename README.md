@@ -5,7 +5,13 @@ A Python library for the [SmartDok API](https://api.smartdok.no/api-docs/).
 ## Installation
 
 ```bash
-pip install "pysmartdok>=0.2.0"
+uv add pysmartdok
+```
+
+or, with pip:
+
+```bash
+pip install pysmartdok
 ```
 
 ## Usage
