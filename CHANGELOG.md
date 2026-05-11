@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0a2] - 2026-05-11
+
 ### Added
+- Automatic session-token refresh on 401: subclient requests transparently re-authenticate and retry once when the SmartDok API returns 401. Session tokens expire after about an hour; this removes the need for callers to track expiry. Thread-safe under concurrent fan-out (e.g. `get_rue_reports`).
 - `ApiClient(user_agent=...)` parameter — defaults to `"pysmartdok"`, sent as the `User-Agent` header on auth and all subsequent requests.
 - Pydantic models for RUE responses (`RueReport`, `RueReportSummary`, `RueEventLog`, `RueMessage`, `FileInformation`, `GeoLocation`, etc.) with Norwegian field descriptions matching the SmartDok web UI.
 - `client.rue.get_rue_summaries()` — paginates internally and returns all matching summaries.
@@ -32,3 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `beautifulsoup4` runtime dependency (only `WebClient` used it).
 - Deprecated `client.rue.get_rue()` (the underlying `GET /rue` endpoint was removed by SmartDok; use `get_rue_summaries` / `get_rue_reports`).
 - Deprecated `client.users.get_roles()` (the underlying `GET /Roles` endpoint was deprecated; use the `Role` field on user objects).
+
+[Unreleased]: https://github.com/asterisk-digital/pysmartdok/compare/v0.1.0a2...HEAD
+[0.1.0a2]: https://github.com/asterisk-digital/pysmartdok/releases/tag/v0.1.0a2
